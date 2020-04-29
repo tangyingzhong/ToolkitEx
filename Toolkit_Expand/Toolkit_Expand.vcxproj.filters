@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="App">
+      <UniqueIdentifier>{b84fbc02-929a-4ef4-929c-1ec2a7013030}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Toolkit">
+      <UniqueIdentifier>{857d6ab9-8f20-4aec-8d47-3fa856e71d31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Toolkit\Office">
+      <UniqueIdentifier>{2909eda7-4716-4a37-a95d-7d7a025c5c16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Toolkit\Office\Excel">
+      <UniqueIdentifier>{76e62566-1030-4b15-ab15-7dad9f7f6b7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Toolkit\Office\Word">
+      <UniqueIdentifier>{3b253fef-03c7-47a9-8037-03143f5ceb01}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App\dllmain.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="App\pch.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="Toolkit\Office\Excel\Excel.cpp">
+      <Filter>Toolkit\Office\Excel</Filter>
+    </ClCompile>
+    <ClCompile Include="Toolkit\Office\Word\Word.cpp">
+      <Filter>Toolkit\Office\Word</Filter>
+    </ClCompile>
+    <ClCompile Include="Toolkit\Office\Word\WordProcessingCompiler.cpp">
+      <Filter>Toolkit\Office\Word</Filter>
+    </ClCompile>
+    <ClCompile Include="Toolkit\Office\Word\WordProcessingMerger.cpp">
+      <Filter>Toolkit\Office\Word</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="App\framework.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="App\pch.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\Office\Excel\Excel.h">
+      <Filter>Toolkit\Office\Excel</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\Office\Excel\IExcel.h">
+      <Filter>Toolkit\Office\Excel</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\Office\Word\IWord.h">
+      <Filter>Toolkit\Office\Word</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\Office\Word\Word.h">
+      <Filter>Toolkit\Office\Word</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\Office\Word\WordProcessingCompiler.h">
+      <Filter>Toolkit\Office\Word</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\Office\Word\WordProcessingMerger.h">
+      <Filter>Toolkit\Office\Word</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
