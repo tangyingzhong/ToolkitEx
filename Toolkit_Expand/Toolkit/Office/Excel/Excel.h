@@ -30,14 +30,14 @@ namespace System
 			Excel();
 
 			// Detructe the Excel
-			~Excel();
+			virtual ~Excel();
 
 		private:
 			// Forbid the copy Excel
 			Excel(const Excel& other){	}
 
 			// Forbid the assigment of Excel
-			Excel& operator=(const Excel& other){	}
+			Excel& operator=(const Excel& other) { return *this; }
 
 		public:
 			// Load the excel

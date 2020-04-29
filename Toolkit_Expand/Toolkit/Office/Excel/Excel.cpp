@@ -6,13 +6,14 @@ using namespace System;
 using namespace System::Office;
 
 // Construct the Excel
-Excel::Excel() :m_pBook(NULL),
-m_pSheet(NULL),
-m_pFont(NULL),
-m_pFormat(NULL),
-m_strErrorMessage(String("")),
-m_bIsClosed(false),
-m_bDisposed(false)
+Excel::Excel() :
+	m_pBook(NULL),
+	m_pSheet(NULL),
+	m_pFont(NULL),
+	m_pFormat(NULL),
+	m_strErrorMessage(String("")),
+	m_bIsClosed(false),
+	m_bDisposed(false)
 {
 	Initialize();
 }

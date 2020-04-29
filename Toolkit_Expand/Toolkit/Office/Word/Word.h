@@ -24,14 +24,14 @@ namespace System
 			Word();
 
 			// Detructe the Word
-			~Word();
+			virtual ~Word();
 
 		private:
 			// Forbid the copy Word
 			Word(const Word& other){	}
 
 			// Forbid the assigment of Word
-			Word& operator=(const Word& other){	}
+			Word& operator=(const Word& other){ return *this; }
 
 		public:
 			// Load the doc
