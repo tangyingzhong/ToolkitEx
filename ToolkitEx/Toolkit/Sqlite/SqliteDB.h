@@ -11,9 +11,9 @@
 #ifndef SQLITEDB_H
 #define SQLITEDB_H
 
-#include "BaseType/String.h"
-#include "Common/SystemType.h"
-#include "../../ShareLib/Sqlite_3.0/include/sqlite3.h"
+#include "Tool/BaseType/String.h"
+#include "Tool/Common/SystemType.h"
+#include "sqlite3.h"
 
 using namespace std;
 using namespace System::BasicType;
@@ -40,20 +40,20 @@ namespace System
 			SqliteDB(const SqliteDB& other) {	}
 
 			// Forbid the assigment of 
-			SqliteDB& operator=(const SqliteDB& other) {	}
+			SqliteDB& operator=(const SqliteDB& other) { return *this; }
 
 		public:
 			// Open the sqlite
 			Boolean Open(String strDbFilePath);
 
 			// Close the sqlite
-			Empty Close();
+			None Close();
 
 			// Is opened or not
 			Boolean IsOpen();
 
 			// Excute the sql(serach sql)
-			Boolean ExecuteNonQuery(String strSql,Int32 iRetCode=0);
+			Boolean ExecuteNonQuery(String strSql,Int32& iRetCode);
 
 			// Excute the sql(serach sql)
 			Boolean ExecuteNonQuery(String strSql, RecordTable& Table);
@@ -66,13 +66,13 @@ namespace System
 
 		private:
 			// Initialize the sqlite
-			Empty Initialize();
+			None Initialize();
 
 			// Destory the sqlite
-			Empty Destory();
+			None Destory();
 
 			// Excute the command 
-			Boolean Excute(String strSql, Int32 iRetCode = 0);
+			Boolean Excute(String strSql, Int32& iRetCode);
 
 		private:
 			// Get the DB
@@ -112,7 +112,7 @@ namespace System
 			}
 
 			// Set the IsOpen
-			inline Empty SetIsOpen(Boolean bIsOpen)
+			inline None SetIsOpen(Boolean bIsOpen)
 			{
 				m_bIsOpen = bIsOpen;
 			}

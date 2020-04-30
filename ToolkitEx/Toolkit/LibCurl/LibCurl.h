@@ -37,7 +37,7 @@ namespace System
 			LibCurl(const LibCurl& other){	}
 
 			// Forbid the assigment of LibCurl
-			LibCurl& operator=(const LibCurl& other){	}
+			LibCurl& operator=(const LibCurl& other){ return *this; }
 
 		public:
 			// Init the curl
@@ -47,9 +47,9 @@ namespace System
 			static void DestoryCurl();
 
 			// Set head for url
-			virtual HeadList SetRequestHead(String strHeadType = _T("Content-Type"),
-				String strProtocol = _T("application/json"),
-				String strEncodeType = _T("charset=UTF-8"));
+			virtual HeadList SetRequestHead(String strHeadType = String(_T("Content-Type")),
+				String strProtocol = String(_T("application/json")),
+				String strEncodeType = String(_T("charset=UTF-8")));
 
 			// Post the request by http
 			virtual Boolean Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessage);
@@ -65,25 +65,22 @@ namespace System
 
 		private:
 			// Initialize the LibCurl
-			Empty Initialize();
+			None Initialize();
 
 			// Destory the LibCurl
-			Empty Destory();
+			None Destory();
 
 			// Create Curl
 			Boolean CreateUrL(UrlHandle& pHandle);
 
 			// Destory Curl
-			Empty DestoryUrL(UrlHandle pHandle);
+			None DestoryUrL(UrlHandle pHandle);
 
 			// Clear the head list
-			Empty ClearRequeHeadHead(HeadList& hList);
+			None ClearRequeHeadHead(HeadList& hList);
 
 			// Get error info
 			String GetErrorInfo(RetCode eRetCode);
-
-			// Change the string encode type
-			String ChangeEncodeType(String strData);
 
 			// Write data (Called by url inner)
 			static size_t OnWriteData(void* buffer,
@@ -106,7 +103,7 @@ namespace System
 			}
 
 			// Set the disposed status
-			inline Empty SetDisposed(Boolean bDisposed)
+			inline None SetDisposed(Boolean bDisposed)
 			{
 				m_bDisposed = bDisposed;
 			}

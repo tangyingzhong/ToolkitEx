@@ -1,10 +1,7 @@
-#include "PreCompile.h"
-#include "Encoding/Unicode.h"
-#include "Encoding/ANSI.h"
-#include "Encoding/UTF8.h"
+#include "Tool/Encoding/Unicode.h"
+#include "Tool/Encoding/ANSI.h"
+#include "Tool/Encoding/UTF8.h"
 #include "SqliteDB.h"
-
-#pragma comment(lib, "sqlite3.lib")
 
 using namespace System::DataBase;
 using namespace System::Encoding;
@@ -25,13 +22,13 @@ SqliteDB::~SqliteDB()
 }
 
 // Initialize the sqlite
-Empty SqliteDB::Initialize()
+None SqliteDB::Initialize()
 {
 	
 }
 
 // Destory the sqlite
-Empty SqliteDB::Destory()
+None SqliteDB::Destory()
 {
 	if (!GetDisposed())
 	{
@@ -49,7 +46,7 @@ Boolean SqliteDB::Open(String strDbFilePath)
 		return false;
 	}
 
-	if (sqlite3_open_v2(strDbFilePath.ToUtf8Data().c_str(),
+	if (sqlite3_open_v2(strDbFilePath.ToUTF8Data().c_str(),
 		&m_pDB,
 		SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
 		NULL)!=SQLITE_OK)
@@ -87,7 +84,7 @@ Boolean SqliteDB::IsOpen()
 }
 
 // Close the sqlite
-Empty SqliteDB::Close()
+None SqliteDB::Close()
 {
 	if (GetDB()==NULL)
 	{
@@ -100,12 +97,12 @@ Empty SqliteDB::Close()
 }
 
 // Excute the command 
-Boolean SqliteDB::Excute(String strSql,Int32 iRetCode)
+Boolean SqliteDB::Excute(String strSql,Int32& iRetCode)
 {
 	// Prepare the sql, check sql legal
 	sqlite3_stmt* pStmt = NULL;
 
-	if (sqlite3_prepare_v2(GetDB(), strSql.ToUtf8Data().c_str(), -1, &pStmt, NULL) != SQLITE_OK)
+	if (sqlite3_prepare_v2(GetDB(), strSql.ToUTF8Data().c_str(), -1, &pStmt, NULL) != SQLITE_OK)
 	{
 		std::string strErrorMsg = sqlite3_errmsg(GetDB());
 
@@ -146,7 +143,7 @@ Boolean SqliteDB::Excute(String strSql,Int32 iRetCode)
 }
 
 // Excute the sql(add,delete,modify)
-Boolean SqliteDB::ExecuteNonQuery(String strSql, Int32 iRetCode)
+Boolean SqliteDB::ExecuteNonQuery(String strSql, Int32& iRetCode)
 {
 	return Excute(strSql, iRetCode);
 }
@@ -157,7 +154,7 @@ Boolean SqliteDB::ExecuteNonQuery(String strSql, RecordTable& Table)
 	// Prepare the sql, check sql legal
 	sqlite3_stmt* pStmt = NULL;
 
-	if (sqlite3_prepare_v2(GetDB(), strSql.ToUtf8Data().c_str(), -1, &pStmt, NULL) != SQLITE_OK)
+	if (sqlite3_prepare_v2(GetDB(), strSql.ToUTF8Data().c_str(), -1, &pStmt, NULL) != SQLITE_OK)
 	{
 		std::string strErrorMsg = sqlite3_errmsg(GetDB());
 

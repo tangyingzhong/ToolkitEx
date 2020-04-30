@@ -1,11 +1,7 @@
-#include "PreCompile.h"
-#include "Encoding/ANSI.h"
-#include "Encoding/UTF8.h"
-#include "Encoding/Unicode.h"
+#include "Tool/Encoding/ANSI.h"
+#include "Tool/Encoding/UTF8.h"
+#include "Tool/Encoding/Unicode.h"
 #include "LibCurl.h"
-
-#pragma comment(lib,"curllib.lib")
-#pragma comment(lib,"curllib_static.lib")
 
 using namespace System::Encoding;
 using namespace System::Network;
@@ -23,13 +19,13 @@ LibCurl::~LibCurl()
 }
 
 // Initialize the LibCurl
-Empty LibCurl::Initialize()
+None LibCurl::Initialize()
 {
 
 }
 
 // Destory the LibCurl
-Empty LibCurl::Destory()
+None LibCurl::Destory()
 {
 	if (!GetDisposed())
 	{
@@ -62,7 +58,7 @@ Boolean LibCurl::CreateUrL(UrlHandle& pHandle)
 }
 
 // Destory Curl
-Empty LibCurl::DestoryUrL(UrlHandle pHandle)
+None LibCurl::DestoryUrL(UrlHandle pHandle)
 {
 	if (pHandle)
 	{
@@ -80,7 +76,15 @@ size_t LibCurl::OnWriteData(void* buffer,
 {
 	LibCurl* pThis = (LibCurl*)lpVoid;
 
-	pThis->m_TransPara.strResponse.append((char*)buffer, size*nmemb);
+	size_t iTotalSize = size * nmemb;
+
+	Array<SByte> RespondData(iTotalSize);
+
+	Array<SByte>::Copy((SByteArray)buffer, iTotalSize, RespondData.Data(), RespondData.Size());
+
+	std::string strData = RespondData.Data();
+
+	pThis->m_TransPara.strResponse.append(strData);
 
 	return nmemb;
 }
@@ -117,15 +121,13 @@ String LibCurl::GetErrorInfo(RetCode eRetCode)
 {
 	std::string strErrorMsg=curl_easy_strerror(eRetCode);
 
-	std::string strANSI = ANSI::GetString(strErrorMsg, ENCODE_UTF8);
-
-	std::wstring strMsg = Unicode::GetString(strANSI, ENCODE_ANSI);
+	String strMsg = String(strErrorMsg, ENCODE_UTF8);
 
 	return strMsg;
 }
 
 // Clear the head list
-Empty LibCurl::ClearRequeHeadHead(HeadList& hList)
+None LibCurl::ClearRequeHeadHead(HeadList& hList)
 {
 	if (hList)
 	{
@@ -155,30 +157,13 @@ LibCurl::HeadList LibCurl::SetRequestHead(String strHeadType,
 		return NULL;
 	}
 
-	String strHeadInfo = strHeadType + _T(":") + strProtocol + _T(";") + strEncodeType;
+	String strHeadInfo = strHeadType + String(_T(":")) + strProtocol + String(_T(";")) + strEncodeType;
 
 	HeadList pHeadList = NULL;
 
-	pHeadList = curl_slist_append(pHeadList, strHeadInfo.ToUtf8Data().c_str());
+	pHeadList = curl_slist_append(pHeadList, strHeadInfo.ToUTF8Data().c_str());
 
 	return pHeadList;
-}
-
-// Change the string encode type
-String LibCurl::ChangeEncodeType(String strData)
-{
-	if (strData.IsEmpty())
-	{
-		return _T("");
-	}
-
-	std::string strUtf8 = UTF8::GetString(strData.CStr(), ENCODE_UTF8);
-
-	std::string strANSI = ANSI::GetString(strUtf8, ENCODE_UTF8);
-
-	std::wstring strMsg = Unicode::GetString(strANSI, ENCODE_ANSI);
-
-	return strMsg;
 }
 
 // Post the request by http

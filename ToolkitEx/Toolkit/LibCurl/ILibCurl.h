@@ -11,10 +11,10 @@
 #ifndef ILIBCURL_H
 #define ILIBCURL_H
 
-#include "Common/SystemType.h"
-#include "BaseType/String.h"
-#include "../../ShareLib/LibCurl/include/curl.h"
-#include "../../ShareLib/LibCurl/include/easy.h"
+#include "Tool/Common/SystemType.h"
+#include "Tool/BaseType/String.h"
+#include "curl.h"
+#include "easy.h"
 
 using namespace System;
 using namespace System::BasicType;
@@ -59,7 +59,7 @@ namespace System
 				Clear();
 			}
 
-			Empty Clear()
+			None Clear()
 			{
 				strRequestUrl = "";
 
@@ -87,9 +87,9 @@ namespace System
 
 		public:
 			// Set head for url
-			virtual HeadList SetRequestHead(String strHeadType = _T("Content-Type"),
-				String strProtocol = _T("application/json"),
-				String strEncodeType = _T("charset=UTF-8")) = 0;
+			virtual HeadList SetRequestHead(String strHeadType = String(_T("Content-Type")),
+				String strProtocol = String(_T("application/json")),
+				String strEncodeType = String(_T("charset=UTF-8"))) = 0;
 
 			// Post the request by http
 			virtual Boolean Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessage) = 0;
