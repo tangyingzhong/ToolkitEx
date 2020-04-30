@@ -1,28 +1,32 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="App">
-      <UniqueIdentifier>{b84fbc02-929a-4ef4-929c-1ec2a7013030}</UniqueIdentifier>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Toolkit">
-      <UniqueIdentifier>{857d6ab9-8f20-4aec-8d47-3fa856e71d31}</UniqueIdentifier>
+      <UniqueIdentifier>{ef8aa0cb-6643-48e0-90a3-56498d3da09e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Toolkit\Office">
-      <UniqueIdentifier>{2909eda7-4716-4a37-a95d-7d7a025c5c16}</UniqueIdentifier>
+      <UniqueIdentifier>{17d8b0f8-13c6-4187-9644-25f178f72cab}</UniqueIdentifier>
     </Filter>
     <Filter Include="Toolkit\Office\Excel">
-      <UniqueIdentifier>{76e62566-1030-4b15-ab15-7dad9f7f6b7a}</UniqueIdentifier>
+      <UniqueIdentifier>{88749e4f-061a-43be-8d75-d07fbcd98342}</UniqueIdentifier>
     </Filter>
     <Filter Include="Toolkit\Office\Word">
-      <UniqueIdentifier>{3b253fef-03c7-47a9-8037-03143f5ceb01}</UniqueIdentifier>
+      <UniqueIdentifier>{0036cb6b-5241-43b6-bbb9-1214c965a8e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Toolkit\LibCurl">
+      <UniqueIdentifier>{458f7c07-a68f-4fe5-9159-f7c44a38ed20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Toolkit\Sqlite">
+      <UniqueIdentifier>{f4ef45e9-1946-4ab3-ac05-ac1613dcfa9f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="App\dllmain.cpp">
-      <Filter>App</Filter>
-    </ClCompile>
-    <ClCompile Include="App\pch.cpp">
-      <Filter>App</Filter>
+    <ClCompile Include="ToolkitTest.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Toolkit\Office\Excel\Excel.cpp">
       <Filter>Toolkit\Office\Excel</Filter>
@@ -36,14 +40,14 @@
     <ClCompile Include="Toolkit\Office\Word\WordProcessingMerger.cpp">
       <Filter>Toolkit\Office\Word</Filter>
     </ClCompile>
+    <ClCompile Include="Toolkit\Sqlite\SqliteDB.cpp">
+      <Filter>Toolkit\Sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="Toolkit\LibCurl\LibCurl.cpp">
+      <Filter>Toolkit\LibCurl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="App\framework.h">
-      <Filter>App</Filter>
-    </ClInclude>
-    <ClInclude Include="App\pch.h">
-      <Filter>App</Filter>
-    </ClInclude>
     <ClInclude Include="Toolkit\Office\Excel\Excel.h">
       <Filter>Toolkit\Office\Excel</Filter>
     </ClInclude>
@@ -61,6 +65,15 @@
     </ClInclude>
     <ClInclude Include="Toolkit\Office\Word\WordProcessingMerger.h">
       <Filter>Toolkit\Office\Word</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\Sqlite\SqliteDB.h">
+      <Filter>Toolkit\Sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\LibCurl\ILibCurl.h">
+      <Filter>Toolkit\LibCurl</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\LibCurl\LibCurl.h">
+      <Filter>Toolkit\LibCurl</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
