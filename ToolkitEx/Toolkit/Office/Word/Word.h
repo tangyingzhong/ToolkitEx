@@ -72,6 +72,9 @@ namespace System
 			// Close the doc
 			None Close();
 
+			// Delete imediate file
+			None Clear();
+
 		private:
 			// Get the DocFilePath
 			inline String GetDocFilePath() const

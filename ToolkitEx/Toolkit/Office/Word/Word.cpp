@@ -43,8 +43,28 @@ None Word::Destory()
 	{
 		SetDisposed(true);
 
+		Clear();
+
 		Close();
 	}
+}
+
+// Delete imediate file
+None Word::Clear()
+{
+	String strSrcDocPath = GetDocFilePath();
+
+	Int32 iPos = strSrcDocPath.FindLast(String("."));
+	if (iPos == -1)
+	{
+		return;
+	}
+
+	strSrcDocPath = strSrcDocPath.Left(iPos);
+
+	String strDfwFilePath = strSrcDocPath + String(".dfw");
+
+	File::Delete(strDfwFilePath);
 }
 
 // Get new doc file path 
@@ -58,9 +78,9 @@ String Word::GetNewDocPath(String strDocFilePath)
 	Int32 iPos = strDocFilePath.FindLast(String("\\"));
 	if (iPos == -1)
 	{
-		SetErrorMessage(String("Invalid file path!"));
+		SetErrorMessage(String(_T("Invalid file path!")));
 
-		return false;
+		return String("");
 	}
 
 	String strLeftPath = strDocFilePath.Left(iPos + 1);
@@ -70,9 +90,9 @@ String Word::GetNewDocPath(String strDocFilePath)
 	Int32 iPos1 = strDocName.FindLast(String("."));
 	if (iPos1 == -1)
 	{
-		SetErrorMessage(String("Invalid short file name!"));
+		SetErrorMessage(String(_T("Invalid short file name!")));
 
-		return false;
+		return String("");
 	}
 
 	String strLeftName = strDocName.Left(iPos1 + 1);
@@ -94,7 +114,7 @@ Boolean Word::Compile(String strDocFilePath, String strDfwFilePath)
 
 	if (strDfwFilePath.IsEmpty())
 	{
-		SetErrorMessage(String("DFW file path is None!"));
+		SetErrorMessage(String(_T("DFW file path is empty!")));
 
 		return false;
 	}
@@ -103,7 +123,9 @@ Boolean Word::Compile(String strDocFilePath, String strDfwFilePath)
 
 	if (!Compiler.Compile(strDocFilePath.ToANSIData(),strDfwFilePath.ToANSIData()))
 	{
-		SetErrorMessage(Compiler.GetErrorMessage());
+		String strErrorMsg = Compiler.GetErrorMessage();
+
+		SetErrorMessage(strErrorMsg);
 
 		return false;
 	}
@@ -116,7 +138,7 @@ Boolean Word::Load(String strDocFilePath)
 {
 	if (strDocFilePath.IsEmpty())
 	{
-		SetErrorMessage(String("Doc file path is None!"));
+		SetErrorMessage(String(_T("Doc file path is None!")));
 
 		return false;
 	}
@@ -127,7 +149,7 @@ Boolean Word::Load(String strDocFilePath)
 	String strDfwFilePath = GetNewDocPath(strDocFilePath);
 	if (strDfwFilePath.IsEmpty())
 	{
-		SetErrorMessage(String("Failed to compile the doc file!"));
+		SetErrorMessage(String(_T("Failed to compile the doc file!")));
 
 		return false;
 	}
@@ -142,7 +164,9 @@ Boolean Word::Load(String strDocFilePath)
 
 	if (!WordMerger.Load(strDfwFilePath.ToANSIData()))
 	{
-		SetErrorMessage(WordMerger.GetErrorMessage());
+		String strErrorMsg = WordMerger.GetErrorMessage();
+
+		SetErrorMessage(strErrorMsg);
 
 		return false;
 	}
@@ -155,25 +179,49 @@ Boolean Word::GetDoc(String& strContent)
 {
 	if (GetDocFilePath().IsEmpty())
 	{
-		SetErrorMessage(String("Doc file path is None!"));
+		SetErrorMessage(String(_T("Doc file path is empty!")));
 
 		return false;
 	}
 
+	// Save this doc to be a txt file
+	String strCurExePath = Directory::AddEnding(Directory::GetExcutableDirectory());
+
+	strCurExePath = strCurExePath + String(_T("temp.txt"));
+
+	Save(strCurExePath);
+
+	// Read the txt file
 	File FileHelper;
 
-	if (!FileHelper.Open(GetDocFilePath(),File::FileMode::OPEN))
+	if (!FileHelper.Open(strCurExePath,File::FileMode::OPEN,File::FileAccess::READ))
 	{
-		SetErrorMessage(String("Failed to open the doic!"));
+		SetErrorMessage(String(_T("Failed to open the doc!")));
+
+		File::Delete(strCurExePath);
 
 		return false;
 	}
 
 	FixedUInt32 iFileSize = (FixedUInt32)FileHelper.GetSize();
 
-	FileHelper.Read((SByteArray)strContent.ToANSIData().c_str(), 0, iFileSize);
+	Array<SByte> FileData(iFileSize+1);
+
+	File::ArraySize iContentSize = FileHelper.Read(FileData.Data(), 0, FileData.Size());
+	if (iContentSize <= 0)
+	{
+		SetErrorMessage(String(_T("Failed to read the doc!")));
+
+		File::Delete(strCurExePath);
+
+		return false;
+	}
 
 	FileHelper.Close();
+
+	File::Delete(strCurExePath);
+
+	strContent = String(FileData.Data());
 
 	return true;
 }
@@ -185,7 +233,7 @@ Boolean Word::WriteDoc(String strValue,
 {
 	if (strValue.IsEmpty())
 	{
-		SetErrorMessage(String("Data to be written is None!"));
+		SetErrorMessage(String(_T("Data to be written is empty!")));
 
 		return false;
 	}
@@ -196,7 +244,18 @@ Boolean Word::WriteDoc(String strValue,
 		strFiledName.ToANSIData(),
 		strValue.ToANSIData()))
 	{
-		SetErrorMessage(WordMerger.GetErrorMessage());
+		String strErrorMsg = WordMerger.GetErrorMessage();
+
+		SetErrorMessage(strErrorMsg);
+
+		return false;
+	}
+
+	if (!WordMerger.Paste(strTitleName.ToANSIData()))
+	{
+		String strErrorMsg = WordMerger.GetErrorMessage();
+
+		SetErrorMessage(strErrorMsg);
 
 		return false;
 	}
@@ -215,7 +274,9 @@ Boolean Word::WriteDoc(Real dValue,
 		strFiledName.ToANSIData(),
 		dValue))
 	{
-		SetErrorMessage(WordMerger.GetErrorMessage());
+		String strErrorMsg = WordMerger.GetErrorMessage();
+
+		SetErrorMessage(strErrorMsg);
 
 		return false;
 	}
@@ -237,7 +298,9 @@ Boolean Word::Save(String strDocFilePath)
 
 	if (!WordMerger.Save(strDocFilePath.ToANSIData()))
 	{
-		SetErrorMessage(WordMerger.GetErrorMessage());
+		String strErrorMsg = WordMerger.GetErrorMessage();
+
+		SetErrorMessage(strErrorMsg);
 
 		return false;
 	}
