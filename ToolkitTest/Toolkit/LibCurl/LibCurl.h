@@ -12,6 +12,8 @@
 #define LIBCURL_H
 
 #include "ILibCurl.h"
+#include "curl.h"
+#include "easy.h"
 
 using namespace System;
 
@@ -78,6 +80,7 @@ namespace System
 		class LibCurl:public ILibCurl
 		{
 		public:
+			typedef struct curl_slist* HeadList;
 			typedef CURLcode RetCode;
 			typedef CURL* UrlHandle;
 
@@ -110,7 +113,7 @@ namespace System
 			virtual None SetTimeout(UInt32 iSeconds);
 
 			// Set head for url
-			virtual HeadList SetRequestHead(String strHeadType = String(_T("Content-Type")),
+			virtual None SetRequestHead(String strHeadType = String(_T("Content-Type")),
 				String strProtocol = String(_T("application/json")),
 				String strEncodeType = String(_T("charset=UTF-8")));
 
@@ -251,6 +254,18 @@ namespace System
 				m_iTimeoutS = iTimeoutS;
 			}
 
+			// Get the HeadList
+			inline HeadList GetHeadList() const
+			{
+				return m_pHeadList;
+			}
+
+			// Set the HeadList
+			inline void SetHeadList(HeadList pHeadList)
+			{
+				m_pHeadList = pHeadList;
+			}
+
 		private:
 			// Is curl initialized
 			static Boolean m_bIsInit;
@@ -258,6 +273,9 @@ namespace System
 			// Transfer paramenter
 			TransPara m_TransPara;
 
+			// Head list
+			HeadList m_pHeadList;
+			
 			// Timeout 
 			UInt32 m_iTimeoutS;
 		

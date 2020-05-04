@@ -13,8 +13,6 @@
 
 #include "Tool/Common/SystemType.h"
 #include "Tool/BaseType/String.h"
-#include "curl.h"
-#include "easy.h"
 
 using namespace System;
 using namespace System::BasicType;
@@ -34,8 +32,6 @@ namespace System
 		class ILibCurl
 		{
 		public:
-			typedef struct curl_slist* HeadList;
-
 			// Destruct the curl
 			virtual ~ILibCurl(){		}
 
@@ -47,7 +43,7 @@ namespace System
 			virtual None SetTimeout(UInt32 iSeconds) = 0;
 
 			// Set head for url
-			virtual HeadList SetRequestHead(String strHeadType = String(_T("Content-Type")),
+			virtual None SetRequestHead(String strHeadType = String(_T("Content-Type")),
 				String strProtocol = String(_T("application/json")),
 				String strEncodeType = String(_T("charset=UTF-8"))) = 0;
 

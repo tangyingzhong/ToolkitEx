@@ -10,6 +10,7 @@ Boolean LibCurl::m_bIsInit = false;
 
 // Construct the LibCurl
 LibCurl::LibCurl() :
+	m_pHeadList(NULL),
 	m_iTimeoutS(1),
 	m_iErrorCode(CURLE_OK),
 	m_strErrorMsg(String("")),
@@ -214,23 +215,15 @@ Boolean LibCurl::IsCanOperate()
 }
 
 // Set head for url
-LibCurl::HeadList LibCurl::SetRequestHead(String strHeadType,
+None LibCurl::SetRequestHead(String strHeadType,
 	String strProtocol,
 	String strEncodeType)
 {
-	if (strHeadType.IsEmpty())
+	if (strHeadType.IsEmpty() 
+		|| strProtocol.IsEmpty()
+		|| strEncodeType.IsEmpty())
 	{
-		return NULL;
-	}
-
-	if (strProtocol.IsEmpty())
-	{
-		return NULL;
-	}
-
-	if (strEncodeType.IsEmpty())
-	{
-		return NULL;
+		return;
 	}
 
 	String strHeadInfo = strHeadType 
@@ -247,10 +240,10 @@ LibCurl::HeadList LibCurl::SetRequestHead(String strHeadType,
 	{
 		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Head list is empty!"));
 
-		return NULL;
+		return;
 	} 
 
-	return pHeadList;
+	SetHeadList(pHeadList);
 }
 
 // Post the request by http
@@ -289,13 +282,9 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 	}
 
 	// Build the head info
-	HeadList pList = SetRequestHead();
-	if (pList == NULL)
-	{
-		return false;
-	}
+	SetRequestHead();
 
-	curl_easy_setopt(pHandle, CURLOPT_HTTPHEADER, pList);
+	curl_easy_setopt(pHandle, CURLOPT_HTTPHEADER, GetHeadList());
 
 	curl_easy_setopt(pHandle, CURLOPT_URL, (char*)strRequestUrl.c_str());
 
@@ -343,7 +332,9 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 		SetErrorInfo(iErrorCode, strErrorMessage);
 
 		// Clear the head list
-		ClearRequeHeadHead(pList);
+		HeadList pHeadList = GetHeadList();
+
+		ClearRequeHeadHead(pHeadList);
 
 		// Destory the url
 		DestoryUrL(pHandle);
@@ -355,7 +346,9 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 	strResponseData = m_TransPara.strResponse;
 
 	// Clear the head list
-	ClearRequeHeadHead(pList);
+	HeadList pHeadList = GetHeadList();
+
+	ClearRequeHeadHead(pHeadList);
 
 	// Destory the url
 	DestoryUrL(pHandle);
@@ -487,13 +480,9 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 	}
 
 	// Build the head info
-	HeadList pList = SetRequestHead();
-	if (pList == NULL)
-	{
-		return false;
-	}
+	SetRequestHead();
 
-	curl_easy_setopt(pHandle, CURLOPT_HTTPHEADER, pList);
+	curl_easy_setopt(pHandle, CURLOPT_HTTPHEADER, GetHeadList());
 
 	curl_easy_setopt(pHandle, CURLOPT_URL, (char*)strRequestUrl.c_str());
 
@@ -550,7 +539,9 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 		SetErrorInfo(iErrorCode, strErrorMessage);
 
 		// Clear the head list
-		ClearRequeHeadHead(pList);
+		HeadList pHeadList = GetHeadList();
+
+		ClearRequeHeadHead(pHeadList);
 
 		// Destory the url
 		DestoryUrL(pHandle);
@@ -562,7 +553,9 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 	strResponseData = m_TransPara.strResponse;
 
 	// Clear the head list
-	ClearRequeHeadHead(pList);
+	HeadList pHeadList = GetHeadList();
+
+	ClearRequeHeadHead(pHeadList);
 
 	// Destory the url
 	DestoryUrL(pHandle);
