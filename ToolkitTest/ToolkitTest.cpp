@@ -20,21 +20,23 @@ int main()
 
 	LibCurl CurObject;
 
+	String strVersion = CurObject.GetCurVersion();
+
+	std::cout << strVersion.ToANSIData() << std::endl;
+
 	{
 		CurObject.SetRequestHead(String("Accept:Agent-000"));
 
-		TransPara Para;
+		std::string strRespondData;
 
-		Para.strRequestUrl = "www.baidu.com";
-
-		Para.DownloadFunc = NULL;
-
-		Int32 iErrorCode = 0;
-
-		String strErrorMsg;
-
-		if (!CurObject.Get(Para, iErrorCode, strErrorMsg))
+		if (!CurObject.Get("www.baidu.com","",strRespondData))
 		{
+			Int32 iErrorCode = 0;
+
+			String strErrorMsg;
+
+			CurObject.GetErrorInfo(iErrorCode, strErrorMsg);
+
 			std::cout << strErrorMsg.ToANSIData() << std::endl;
 
 			return -1;
@@ -45,7 +47,7 @@ int main()
 
 			FileHelper.Open(String("E:\\aa.html"), File::FileMode::OPENORCREATE, File::FileAccess::READWRITE);
 
-			FileHelper.Write(Para.strResponse.c_str(), 0, Para.strResponse.length());
+			FileHelper.Write(strRespondData.c_str(), 0, strRespondData.length());
 
 			FileHelper.Close();
 		}
