@@ -16,9 +16,9 @@ int DownLoad(Object pUserData,
 
 int main()
 {
-	LibCurl CurObject;
-
 	LibCurl::InitCurl();
+
+	LibCurl CurObject;
 
 	{
 		CurObject.SetRequestHead(String("Accept:Agent-000"));
