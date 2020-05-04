@@ -121,6 +121,23 @@ None LibCurl::DestoryUrL(UrlHandle pHandle)
 	}
 }
 
+// Read data (Called by url inner)
+size_t LibCurl::OnReadData(void* buffer,
+	size_t size,
+	size_t nmemb,
+	void* lpVoid)
+{
+	FILE* pFile = static_cast<FILE*>(lpVoid);
+	if (pFile == NULL)
+	{
+		return CURL_READFUNC_ABORT;
+	}
+
+	size_t nReadByte = fread(buffer, size, nmemb, pFile);
+
+	return nReadByte;
+}
+
 // Write data (Called by url inner)
 size_t LibCurl::OnWriteData(void* buffer,
 	size_t size,
@@ -656,6 +673,279 @@ Boolean LibCurl::Gets(std::string strRequestUrl,
 
 	// Destory the url
 	DestoryUrL(pHandle);
+
+	return true;
+}
+
+// Get content length
+size_t LibCurl::GetContentLength(Object pHeader,
+	size_t iHeadSize,
+	size_t iMem,
+	Object pStream)
+{
+	long iLength = 0;
+
+	Int32 iRet = sscanf_s(static_cast<const char*>(pHeader), "Content-Length: %ld\n", &iLength);
+	if (iRet)
+	{
+		*(static_cast<long*>(pStream)) = iLength;
+	}
+
+	return iHeadSize * iMem;
+}
+
+// Ftp upload
+Boolean LibCurl::FtpUpload(const std::string strRemoteFilePath,
+	const std::string strLocalFilePath,
+	const std::string strUserName,
+	const std::string strPassword,
+	long TimeoutS,
+	Int32 iTryCount,
+	Object pUserData,
+	UploadProgressProc pUploadFunc,
+	DownLoadProgressProc pDownloadFunc)
+{
+	if (strLocalFilePath.empty())
+	{
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Local file path is empty !"));
+
+		return false;
+	}
+
+	if (strRemoteFilePath.empty())
+	{
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Remote file path is empty !"));
+
+		return false;
+	}
+
+	// Is can continue operation
+	if (!IsCanOperate())
+	{
+		return false;
+	}
+
+	m_TransPara.Set(strRemoteFilePath,
+		"",
+		"",
+		pUploadFunc,
+		pDownloadFunc,
+		pUserData);
+
+	// Compose the user name and password
+	std::string strUserKey = strUserName + ":" + strPassword;
+
+	// Open the local file
+	FILE* pFile = NULL;
+
+	pFile = fopen(strLocalFilePath.c_str(), "rb");
+	if (pFile==NULL)
+	{
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Failed to open local file!"));
+
+		return false;
+	}
+
+	// Create an url
+	UrlHandle pHandle;
+	if (!CreateUrL(pHandle))
+	{
+		return false;
+	}
+
+	curl_easy_setopt(pHandle, CURLOPT_UPLOAD,1L);
+
+	curl_easy_setopt(pHandle, CURLOPT_URL, strRemoteFilePath.c_str());
+
+	curl_easy_setopt(pHandle, CURLOPT_USERPWD, strUserKey.c_str());
+
+	if (TimeoutS)
+	{
+		curl_easy_setopt(pHandle, CURLOPT_FTP_RESPONSE_TIMEOUT, TimeoutS);
+	}
+	
+	curl_easy_setopt(pHandle, CURLOPT_HEADERFUNCTION, GetContentLength);
+
+	long iUploadLength = 0;
+
+	curl_easy_setopt(pHandle, CURLOPT_HEADERDATA, &iUploadLength);
+
+	curl_easy_setopt(pHandle, CURLOPT_WRITEFUNCTION, OnWriteData);
+
+	curl_easy_setopt(pHandle, CURLOPT_READFUNCTION, OnReadData);
+
+	curl_easy_setopt(pHandle, CURLOPT_READDATA, pFile);
+
+	curl_easy_setopt(pHandle, CURLOPT_FTPPORT, "-");
+
+	curl_easy_setopt(pHandle, CURLOPT_FTP_CREATE_MISSING_DIRS, 1L);
+
+	{
+		curl_easy_setopt(pHandle, CURLOPT_NOPROGRESS, false);
+
+		curl_easy_setopt(pHandle, CURLOPT_PROGRESSFUNCTION, ProgressCallback);
+
+		curl_easy_setopt(pHandle, CURLOPT_PROGRESSDATA, this);
+	}
+
+	CURLcode eRetCode = CURLE_GOT_NOTHING;
+
+	for (Int32 index = 0; (eRetCode != CURLE_OK) && (index < iTryCount); ++index)
+	{
+		if (index)
+		{
+			curl_easy_setopt(pHandle, CURLOPT_NOBODY, 1L);
+
+			curl_easy_setopt(pHandle, CURLOPT_HEADER, 1L);
+
+			eRetCode = curl_easy_perform(pHandle);
+			if (eRetCode != CURLE_OK)
+			{
+				continue;
+			}
+
+			curl_easy_setopt(pHandle, CURLOPT_NOBODY, 0L);
+
+			curl_easy_setopt(pHandle, CURLOPT_HEADER, 0L);
+
+			fseek(pFile, iUploadLength, SEEK_SET);
+
+			curl_easy_setopt(pHandle, CURLOPT_APPEND, 1L);
+		}
+		else
+		{
+			curl_easy_setopt(pHandle, CURLOPT_APPEND, 0L);
+		}
+
+		eRetCode = curl_easy_perform(pHandle);
+	}
+
+	// Finish the uploading
+	fclose(pFile);
+
+	if (eRetCode != CURLE_OK)
+	{
+		String strErrorMessage = GetCurlErrorInfo(eRetCode);
+
+		SetErrorInfo(eRetCode, strErrorMessage);
+
+		return false;
+	}
+
+	return true;
+}
+
+// Ftp download
+Boolean LibCurl::FtpDownload(const std::string strRemoteFilePath,
+	const std::string strLocalFilePath,
+	const std::string strUserName,
+	const std::string strPassword,
+	long TimeoutS,
+	Object pUserData,
+	UploadProgressProc pUploadFunc,
+	DownLoadProgressProc pDownloadFunc)
+{
+	if (strLocalFilePath.empty())
+	{
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Local file path is empty !"));
+
+		return false;
+	}
+
+	if (strRemoteFilePath.empty())
+	{
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Remote file path is empty !"));
+
+		return false;
+	}
+
+	// Is can continue operation
+	if (!IsCanOperate())
+	{
+		return false;
+	}
+
+	m_TransPara.Set(strRemoteFilePath,
+		"",
+		"",
+		pUploadFunc,
+		pDownloadFunc,
+		pUserData);
+
+	// Compose the user name and password
+	std::string strUserKey = strUserName + ":" + strPassword;
+
+	// Set resume mode
+	struct stat FileInfo;
+
+	Int32 iUseResume = 0;
+
+	curl_off_t iLocalFileLength = -1;
+
+	if (stat(strLocalFilePath.c_str(),&FileInfo))
+	{
+		iLocalFileLength = FileInfo.st_size;
+
+		iUseResume = 1;
+	}
+
+	// Open local file
+	FILE* pFile = NULL;
+
+	pFile = fopen(strLocalFilePath.c_str(), "ab+");
+	if (pFile==NULL)
+	{
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Failed to open local file!"));
+
+		return false;
+	}
+
+	// Create an url
+	UrlHandle pHandle;
+	if (!CreateUrL(pHandle))
+	{
+		return false;
+	}
+
+	curl_easy_setopt(pHandle, CURLOPT_URL, strRemoteFilePath.c_str());
+
+	curl_easy_setopt(pHandle, CURLOPT_USERPWD, strUserKey.c_str());
+
+	curl_easy_setopt(pHandle, CURLOPT_CONNECTTIMEOUT, GetTimeoutS());
+
+	curl_easy_setopt(pHandle, CURLOPT_HEADERFUNCTION, GetContentLength);
+
+	long iFileSize = 0;
+
+	curl_easy_setopt(pHandle, CURLOPT_HEADERDATA, &iFileSize);
+
+	curl_easy_setopt(pHandle, CURLOPT_RESUME_FROM_LARGE, iUseResume ? iLocalFileLength : 0);
+
+	curl_easy_setopt(pHandle, CURLOPT_WRITEDATA, pFile);
+
+	{
+		curl_easy_setopt(pHandle, CURLOPT_NOPROGRESS, false);
+
+		curl_easy_setopt(pHandle, CURLOPT_PROGRESSFUNCTION, ProgressCallback);
+
+		curl_easy_setopt(pHandle, CURLOPT_PROGRESSDATA, this);
+	}
+
+	CURLcode eRetCode = CURLE_GOT_NOTHING;
+
+	eRetCode = curl_easy_perform(pHandle);
+
+	// Finish the uploading
+	fclose(pFile);
+
+	if (eRetCode != CURLE_OK)
+	{
+		String strErrorMessage = GetCurlErrorInfo(eRetCode);
+
+		SetErrorInfo(eRetCode, strErrorMessage);
+
+		return false;
+	}
 
 	return true;
 }

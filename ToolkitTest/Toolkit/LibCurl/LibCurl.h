@@ -151,6 +151,27 @@ namespace System
 				DownLoadProgressProc pDownloadFunc = NULL,
 				const SByteArray pCaPath = NULL);
 
+			// Ftp upload
+			virtual Boolean FtpUpload(const std::string strRemoteFilePath,
+				const std::string strLocalFilePath,
+				const std::string strUserName,
+				const std::string strPassword,
+				long TimeoutS = 0,
+				Int32 iTryCount = 3,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL);
+
+			// Ftp download
+			virtual Boolean FtpDownload(const std::string strRemoteFilePath,
+				const std::string strLocalFilePath,
+				const std::string strUserName,
+				const std::string strPassword,
+				long TimeoutS = 0,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL);
+
 			// Get the error string
 			virtual None GetErrorInfo(Int32& iErrorCode, std::string& strErrorMsg);
 
@@ -192,6 +213,19 @@ namespace System
 
 			// Is can do the operation
 			Boolean IsCanOperate();
+
+		private:
+			// Get content length
+			static size_t GetContentLength(Object pHeader,
+				size_t iHeadSize,
+				size_t iMem,
+				Object pStream);
+
+			// Read data (Called by url inner)
+			static size_t OnReadData(void* buffer,
+				size_t size,
+				size_t nmemb,
+				void* lpVoid);
 
 		private:
 			// Get the disposed status

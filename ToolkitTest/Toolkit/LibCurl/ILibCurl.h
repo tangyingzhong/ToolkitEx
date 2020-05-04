@@ -82,9 +82,25 @@ namespace System
 				const SByteArray pCaPath = NULL) = 0;
 
 			// Ftp upload
-			//virtual Boolean FtpUpload(const std::string);
+			virtual Boolean FtpUpload(const std::string strRemoteFilePath,
+				const std::string strLocalFilePath,
+				const std::string strUserName, 
+				const std::string strPassword, 
+				long TimeoutS =0,
+				Int32 iTryCount = 3,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL) = 0;
 
 			// Ftp download
+			virtual Boolean FtpDownload(const std::string strRemoteFilePath,
+				const std::string strLocalFilePath,
+				const std::string strUserName,
+				const std::string strPassword,
+				long TimeoutS = 0,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL) = 0;
 
 			// Get the error string
 			virtual None GetErrorInfo(Int32& iErrorCode, std::string& strErrorMsg) = 0;
