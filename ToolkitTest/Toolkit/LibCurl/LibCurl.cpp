@@ -6,8 +6,13 @@
 using namespace System::Encoding;
 using namespace System::Network;
 
+Boolean LibCurl::m_bIsInit = false;
+
 // Construct the LibCurl
-LibCurl::LibCurl() :m_bDisposed(false)
+LibCurl::LibCurl() :
+	m_iErrorCode(CURLE_OK),
+	m_strErrorMsg(String("")),
+	m_bDisposed(false)
 {
 	Initialize();
 }
@@ -21,7 +26,10 @@ LibCurl::~LibCurl()
 // Initialize the LibCurl
 None LibCurl::Initialize()
 {
-
+	if (!GetIsInit())
+	{
+		MessageBox(NULL, _T("Libcurl is not initialized!"), _T("Error"), 0);
+	}
 }
 
 // Destory the LibCurl
@@ -34,23 +42,63 @@ None LibCurl::Destory()
 }
 
 // Init the curl
-void LibCurl::InitCurl()
+None LibCurl::InitCurl()
 {
-	curl_global_init(CURL_GLOBAL_ALL);
+	RetCode iRetCode = curl_global_init(CURL_GLOBAL_ALL);
+
+	if (iRetCode == CURLE_FAILED_INIT)
+	{
+		SetIsInit(false);
+	}
+	else
+	{
+		SetIsInit(true);
+	}
 }
 
 // Destory the curl
-void LibCurl::DestoryCurl()
+None LibCurl::DestoryCurl()
 {
-	curl_global_cleanup();
+	if (GetIsInit())
+	{
+		curl_global_cleanup();
+	}
+}
+
+// Get the error string
+None LibCurl::GetErrorInfo(Int32& iErrorCode, String& strErrorMsg)
+{
+	iErrorCode = GetErrorCode();
+
+	strErrorMsg = GetErrorMsg();
+}
+
+// Get the current libcurl version
+String LibCurl::GetCurVersion()
+{
+	if (!GetIsInit())
+	{
+		SetErrorInfo(CURLE_FAILED_INIT, String("Libcurl is not initialized!"));
+
+		return String("");
+	}
+
+	std::string strVersion = curl_version();
+
+	return strVersion;
 }
 
 // Create Curl
 Boolean LibCurl::CreateUrL(UrlHandle& pHandle)
 {
 	pHandle = curl_easy_init();
+
 	if (pHandle == NULL)
 	{
+		String strErrorMessage = GetCurlErrorInfo(CURLE_FAILED_INIT);
+
+		SetErrorInfo(CURLE_FAILED_INIT, strErrorMessage);
+
 		return false;
 	}
 
@@ -116,8 +164,16 @@ int LibCurl::ProgressCallback(void* pUserData,
 	return 0;
 }
 
+// Set error info
+None LibCurl::SetErrorInfo(RetCode eRetCode, String strErrorMsg)
+{
+	SetErrorCode(eRetCode);
+
+	SetErrorMsg(strErrorMsg);
+}
+
 // Get error info
-String LibCurl::GetErrorInfo(RetCode eRetCode)
+String LibCurl::GetCurlErrorInfo(RetCode eRetCode)
 {
 	std::string strErrorMsg=curl_easy_strerror(eRetCode);
 
@@ -157,11 +213,22 @@ LibCurl::HeadList LibCurl::SetRequestHead(String strHeadType,
 		return NULL;
 	}
 
-	String strHeadInfo = strHeadType + String(_T(":")) + strProtocol + String(_T(";")) + strEncodeType;
+	String strHeadInfo = strHeadType 
+		+ String(_T(":")) 
+		+ strProtocol 
+		+ String(_T(";")) 
+		+ strEncodeType;
 
 	HeadList pHeadList = NULL;
 
 	pHeadList = curl_slist_append(pHeadList, strHeadInfo.ToUTF8Data().c_str());
+
+	if (pHeadList==NULL)
+	{
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Head list is empty!"));
+
+		return NULL;
+	} 
 
 	return pHeadList;
 }
@@ -171,6 +238,8 @@ Boolean LibCurl::Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessag
 {
 	if (Para.strRequestUrl.empty())
 	{
+		SetErrorInfo(CURLE_URL_MALFORMAT, String("URL is empty!"));
+
 		return false;
 	}
 
@@ -180,8 +249,6 @@ Boolean LibCurl::Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessag
 	UrlHandle pHandle;
 	if (!CreateUrL(pHandle))
 	{
-		strErrorMessage = GetErrorInfo(CURLE_FAILED_INIT);
-
 		return false;
 	}
 
@@ -233,7 +300,9 @@ Boolean LibCurl::Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessag
 	{
 		curl_easy_getinfo(pHandle, CURLINFO_RESPONSE_CODE, &iErrorCode);
 
-		strErrorMessage = GetErrorInfo(eRetCode);
+		strErrorMessage = GetCurlErrorInfo(eRetCode);
+
+		SetErrorInfo(eRetCode, strErrorMessage);
 
 		// Clear the head list
 		ClearRequeHeadHead(pList);
@@ -270,8 +339,6 @@ Boolean LibCurl::Get(TransPara& Para, Int32& iErrorCode, String& strErrorMessage
 	UrlHandle pHandle;
 	if (!CreateUrL(pHandle))
 	{
-		strErrorMessage = GetErrorInfo(CURLE_FAILED_INIT);
-
 		return false;
 	}
 
@@ -310,7 +377,9 @@ Boolean LibCurl::Get(TransPara& Para, Int32& iErrorCode, String& strErrorMessage
 	{
 		curl_easy_getinfo(pHandle, CURLINFO_RESPONSE_CODE, &iErrorCode);
 
-		strErrorMessage = GetErrorInfo(eRetCode);
+		strErrorMessage = GetCurlErrorInfo(eRetCode);
+
+		SetErrorInfo(eRetCode, strErrorMessage);
 
 		// Destory the url
 		DestoryUrL(pHandle);
@@ -341,8 +410,6 @@ Boolean LibCurl::Posts(TransPara& Para, String& strErrorMessage, const SByteArra
 	UrlHandle pHandle;
 	if (!CreateUrL(pHandle))
 	{
-		strErrorMessage = GetErrorInfo(CURLE_FAILED_INIT);
-
 		return false;
 	}
 
@@ -401,7 +468,9 @@ Boolean LibCurl::Posts(TransPara& Para, String& strErrorMessage, const SByteArra
 	CURLcode eRetCode = curl_easy_perform(pHandle);
 	if (eRetCode != CURLE_OK)
 	{
-		strErrorMessage = GetErrorInfo(eRetCode);
+		strErrorMessage = GetCurlErrorInfo(eRetCode);
+
+		SetErrorInfo(eRetCode, strErrorMessage);
 
 		// Clear the head list
 		ClearRequeHeadHead(pList);
@@ -438,8 +507,6 @@ Boolean LibCurl::Gets(TransPara& Para, String& strErrorMessage, const SByteArray
 	UrlHandle pHandle;
 	if (!CreateUrL(pHandle))
 	{
-		strErrorMessage = GetErrorInfo(CURLE_FAILED_INIT);
-
 		return false;
 	}
 
@@ -483,7 +550,9 @@ Boolean LibCurl::Gets(TransPara& Para, String& strErrorMessage, const SByteArray
 	CURLcode eRetCode = curl_easy_perform(pHandle);
 	if (eRetCode != CURLE_OK)
 	{
-		strErrorMessage = GetErrorInfo(eRetCode);
+		strErrorMessage = GetCurlErrorInfo(eRetCode);
+		
+		SetErrorInfo(eRetCode, strErrorMessage);
 
 		// Destory the url
 		DestoryUrL(pHandle);

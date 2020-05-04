@@ -86,6 +86,9 @@ namespace System
 			virtual ~ILibCurl(){		}
 
 		public:
+			// Get the current libcurl version
+			virtual String GetCurVersion() = 0;
+
 			// Set head for url
 			virtual HeadList SetRequestHead(String strHeadType = String(_T("Content-Type")),
 				String strProtocol = String(_T("application/json")),
@@ -102,6 +105,9 @@ namespace System
 
 			// Get the respoend by https (pCaPath==NULL : do not verify the certification on server)
 			virtual Boolean Gets(TransPara& Para, String& strErrorMessage, const SByteArray pCaPath = NULL) = 0;
+
+			// Get the error string
+			virtual None GetErrorInfo(Int32& iErrorCode, String& strErrorMsg) = 0;
 		};
 	}
 }

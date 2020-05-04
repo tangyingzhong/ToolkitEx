@@ -41,10 +41,14 @@ namespace System
 
 		public:
 			// Init the curl
-			static void InitCurl();
+			static None InitCurl();
 
 			// Destory the curl
-			static void DestoryCurl();
+			static None DestoryCurl();
+
+		public:
+			// Get the current libcurl version
+			virtual String GetCurVersion();
 
 			// Set head for url
 			virtual HeadList SetRequestHead(String strHeadType = String(_T("Content-Type")),
@@ -63,6 +67,9 @@ namespace System
 			// Get the respoend by https (pCaPath==NULL : do not verify the certification on server)
 			virtual Boolean Gets(TransPara& Para, String& strErrorMessage, const SByteArray pCaPath = NULL);
 
+			// Get the error string
+			virtual None GetErrorInfo(Int32& iErrorCode, String& strErrorMsg);
+
 		private:
 			// Initialize the LibCurl
 			None Initialize();
@@ -80,7 +87,10 @@ namespace System
 			None ClearRequeHeadHead(HeadList& hList);
 
 			// Get error info
-			String GetErrorInfo(RetCode eRetCode);
+			String GetCurlErrorInfo(RetCode eRetCode);
+
+			// Set error info
+			None SetErrorInfo(RetCode eRetCode,String strErrorMsg);
 
 			// Write data (Called by url inner)
 			static size_t OnWriteData(void* buffer,
@@ -108,10 +118,55 @@ namespace System
 				m_bDisposed = bDisposed;
 			}
 
+			// Get the IsInit
+			inline static Boolean GetIsInit()
+			{
+				return m_bIsInit;
+			}
+
+			// Set the IsInit
+			inline static void SetIsInit(Boolean bIsInit)
+			{
+				m_bIsInit = bIsInit;
+			}
+
+			// Get the ErrorCode
+			inline Int32 GetErrorCode() const
+			{
+				return m_iErrorCode;
+			}
+
+			// Set the ErrorCode
+			inline void SetErrorCode(Int32 iErrorCode)
+			{
+				m_iErrorCode = iErrorCode;
+			}
+
+			// Get the ErrorMsg
+			inline String GetErrorMsg() const
+			{
+				return m_strErrorMsg;
+			}
+
+			// Set the ErrorMsg
+			inline void SetErrorMsg(String strErrorMsg)
+			{
+				m_strErrorMsg = strErrorMsg;
+			}
+
 		private:
+			// Is curl initialized
+			static Boolean m_bIsInit;
+
 			// Transfer paramenter
 			TransPara m_TransPara;
 
+			// Error code
+			Int32 m_iErrorCode;
+			
+			// Error message
+			String m_strErrorMsg;
+			
 			// Disposed status
 			Boolean m_bDisposed;
 		};
