@@ -25,7 +25,7 @@ int main()
 	std::cout << strVersion.ToANSIData() << std::endl;
 
 	{
-		CurObject.SetRequestHead(String("Accept:Agent-000"));
+		CurObject.SetRequestHead("Accept:Agent-000");
 
 		std::string strRespondData;
 
@@ -33,11 +33,11 @@ int main()
 		{
 			Int32 iErrorCode = 0;
 
-			String strErrorMsg;
+			std::string strErrorMsg;
 
 			CurObject.GetErrorInfo(iErrorCode, strErrorMsg);
 
-			std::cout << strErrorMsg.ToANSIData() << std::endl;
+			std::cout << strErrorMsg << std::endl;
 
 			return -1;
 		}

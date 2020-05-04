@@ -71,21 +71,21 @@ None LibCurl::SetTimeout(UInt32 iSeconds)
 }
 
 // Get the error string
-None LibCurl::GetErrorInfo(Int32& iErrorCode, String& strErrorMsg)
+None LibCurl::GetErrorInfo(Int32& iErrorCode, std::string& strErrorMsg)
 {
 	iErrorCode = GetErrorCode();
 
-	strErrorMsg = GetErrorMsg();
+	strErrorMsg = GetErrorMsg().ToANSIData();
 }
 
 // Get the current libcurl version
-String LibCurl::GetCurVersion()
+std::string  LibCurl::GetCurVersion()
 {
 	if (!GetIsInit())
 	{
 		SetErrorInfo(CURLE_FAILED_INIT, String("Libcurl is not initialized!"));
 
-		return String("");
+		return "";
 	}
 
 	std::string strVersion = curl_version();
@@ -215,21 +215,21 @@ Boolean LibCurl::IsCanOperate()
 }
 
 // Set head for url
-None LibCurl::SetRequestHead(String strHeadType,
-	String strProtocol,
-	String strEncodeType)
+None LibCurl::SetRequestHead(std::string strHeadType,
+	std::string strProtocol,
+	std::string strEncodeType)
 {
-	if (strHeadType.IsEmpty() 
-		|| strProtocol.IsEmpty()
-		|| strEncodeType.IsEmpty())
+	if (strHeadType.empty() 
+		|| strProtocol.empty()
+		|| strEncodeType.empty())
 	{
 		return;
 	}
 
 	String strHeadInfo = strHeadType 
-		+ String(_T(":")) 
+		+ ":"
 		+ strProtocol 
-		+ String(_T(";")) 
+		+ ";"
 		+ strEncodeType;
 
 	HeadList pHeadList = NULL;

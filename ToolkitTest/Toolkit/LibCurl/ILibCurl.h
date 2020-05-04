@@ -37,15 +37,15 @@ namespace System
 
 		public:
 			// Get the current libcurl version
-			virtual String GetCurVersion() = 0;
+			virtual std::string GetCurVersion() = 0;
 
 			// Set time out
 			virtual None SetTimeout(UInt32 iSeconds) = 0;
 
 			// Set head for url
-			virtual None SetRequestHead(String strHeadType = String(_T("Content-Type")),
-				String strProtocol = String(_T("application/json")),
-				String strEncodeType = String(_T("charset=UTF-8"))) = 0;
+			virtual None SetRequestHead(std::string strHeadType = "Content-Type",
+				std::string strProtocol = "application/json",
+				std::string strEncodeType = "charset=UTF-8") = 0;
 
 			// Post the request by http
 			virtual Boolean Post(std::string strRequestUrl,
@@ -81,8 +81,13 @@ namespace System
 				DownLoadProgressProc pDownloadFunc = NULL,
 				const SByteArray pCaPath = NULL) = 0;
 
+			// Ftp upload
+			//virtual Boolean FtpUpload(const std::string);
+
+			// Ftp download
+
 			// Get the error string
-			virtual None GetErrorInfo(Int32& iErrorCode, String& strErrorMsg) = 0;
+			virtual None GetErrorInfo(Int32& iErrorCode, std::string& strErrorMsg) = 0;
 		};
 	}
 }
