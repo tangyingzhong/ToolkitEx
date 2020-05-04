@@ -16,7 +16,7 @@ int DownLoad(Object pUserData,
 
 int main()
 {
-	LibCurl::InitCurl();
+	//LibCurl::InitCurl();
 
 	LibCurl CurObject;
 
