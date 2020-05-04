@@ -27,10 +27,7 @@ LibCurl::~LibCurl()
 // Initialize the LibCurl
 None LibCurl::Initialize()
 {
-	if (!GetIsInit())
-	{
-		MessageBox(NULL, _T("Libcurl is not initialized!"), _T("Error"), 0);
-	}
+	
 }
 
 // Destory the LibCurl
@@ -203,6 +200,19 @@ None LibCurl::ClearRequeHeadHead(HeadList& hList)
 	}
 }
 
+// Is can do the operation
+Boolean LibCurl::IsCanOperate()
+{
+	if (!GetIsInit())
+	{
+		SetErrorInfo(CURLE_FAILED_INIT, String("LibCurl is not initialized yet !"));
+
+		return false;
+	}
+
+	return true;
+}
+
 // Set head for url
 LibCurl::HeadList LibCurl::SetRequestHead(String strHeadType,
 	String strProtocol,
@@ -255,6 +265,12 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 	{
 		SetErrorInfo(CURLE_URL_MALFORMAT, String("URL is empty!"));
 
+		return false;
+	}
+
+	// Is can continue operation
+	if (!IsCanOperate())
+	{
 		return false;
 	}
 
@@ -360,6 +376,12 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 		return false;
 	}
 
+	// Is can continue operation
+	if (!IsCanOperate())
+	{
+		return false;
+	}
+
 	m_TransPara.Set(strRequestUrl,
 		strRequestData,
 		strResponseData,
@@ -440,6 +462,12 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 		const SByteArray pCaPath)
 {
 	if (strRequestUrl.empty())
+	{
+		return false;
+	}
+
+	// Is can continue operation
+	if (!IsCanOperate())
 	{
 		return false;
 	}
@@ -552,6 +580,12 @@ Boolean LibCurl::Gets(std::string strRequestUrl,
 	const SByteArray pCaPath)
 {
 	if (strRequestUrl.empty())
+	{
+		return false;
+	}
+
+	// Is can continue operation
+	if (!IsCanOperate())
 	{
 		return false;
 	}

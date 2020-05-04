@@ -152,6 +152,20 @@ namespace System
 			virtual None GetErrorInfo(Int32& iErrorCode, String& strErrorMsg);
 
 		private:
+			// Write data (Called by url inner)
+			static size_t OnWriteData(void* buffer,
+				size_t size,
+				size_t nmemb,
+				void* lpVoid);
+
+			// Progerss call back for download and upload
+			static int ProgressCallback(void* pUserData,
+				double TotalToDownload,
+				double NowDownloaded,
+				double TotalToUpload,
+				double NowUpload);
+
+		private:
 			// Initialize the LibCurl
 			None Initialize();
 
@@ -173,18 +187,8 @@ namespace System
 			// Set error info
 			None SetErrorInfo(RetCode eRetCode,String strErrorMsg);
 
-			// Write data (Called by url inner)
-			static size_t OnWriteData(void* buffer,
-				size_t size,
-				size_t nmemb,
-				void* lpVoid);
-
-			// Progerss call back for download and upload
-			static int ProgressCallback(void* pUserData,
-				double TotalToDownload,
-				double NowDownloaded,
-				double TotalToUpload,
-				double NowUpload);
+			// Is can do the operation
+			Boolean IsCanOperate();
 
 		private:
 			// Get the disposed status
