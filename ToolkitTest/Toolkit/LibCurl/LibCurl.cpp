@@ -829,8 +829,14 @@ Boolean LibCurl::FtpUpload(const std::string strRemoteFilePath,
 
 		SetErrorInfo(eRetCode, strErrorMessage);
 
+		// Destory the url
+		DestoryUrL(pHandle);
+
 		return false;
 	}
+
+	// Destory the url
+	DestoryUrL(pHandle);
 
 	return true;
 }
@@ -944,8 +950,14 @@ Boolean LibCurl::FtpDownload(const std::string strRemoteFilePath,
 
 		SetErrorInfo(eRetCode, strErrorMessage);
 
+		// Destory the url
+		DestoryUrL(pHandle);
+
 		return false;
 	}
+
+	// Destory the url
+	DestoryUrL(pHandle);
 
 	return true;
 }
