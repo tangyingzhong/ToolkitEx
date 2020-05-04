@@ -31,52 +31,6 @@ namespace System
 			Real TotalToDown,
 			Real NowDownload);
 
-		struct TransPara
-		{
-			// Url
-			std::string strRequestUrl;
-
-			// Post para
-			std::string strPostPara;
-
-			// Respond data
-			std::string strResponse;
-
-			// Timeout
-			UInt32 iSecondTimeout;
-
-			// User data
-			Object pUserData;
-
-			// Upload progress call back func
-			UploadProgressProc UploadFunc;
-
-			// Download progress call back func
-			DownLoadProgressProc DownloadFunc;
-
-			TransPara()
-			{
-				Clear();
-			}
-
-			None Clear()
-			{
-				strRequestUrl = "";
-
-				strPostPara = "";
-
-				strResponse = "";
-
-				iSecondTimeout = 0;
-
-				pUserData = NULL;
-
-				UploadFunc = NULL;
-
-				DownloadFunc = NULL;
-			}
-		};
-
 		class ILibCurl
 		{
 		public:
@@ -89,22 +43,47 @@ namespace System
 			// Get the current libcurl version
 			virtual String GetCurVersion() = 0;
 
+			// Set time out
+			virtual None SetTimeout(UInt32 iSeconds) = 0;
+
 			// Set head for url
 			virtual HeadList SetRequestHead(String strHeadType = String(_T("Content-Type")),
 				String strProtocol = String(_T("application/json")),
 				String strEncodeType = String(_T("charset=UTF-8"))) = 0;
 
 			// Post the request by http
-			virtual Boolean Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessage) = 0;
+			virtual Boolean Post(std::string strRequestUrl,
+				std::string strRequestData,
+				std::string strResponseData,
+				Object pUserData =NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL) = 0;
 
 			// Get the respoend by http
-			virtual Boolean Get(TransPara& Para, Int32& iErrorCode, String& strErrorMessage) = 0;
+			virtual Boolean Get(std::string strRequestUrl,
+				std::string strRequestData,
+				std::string strResponseData,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL) = 0;
 
 			// Post the request by https (pCaPath==NULL : do not verify the certification on server)
-			virtual Boolean Posts(TransPara& Para, String& strErrorMessage, const SByteArray pCaPath = NULL) = 0;
+			virtual Boolean Posts(std::string strRequestUrl,
+				std::string strRequestData,
+				std::string strResponseData,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL,
+				const SByteArray pCaPath = NULL) = 0;
 
 			// Get the respoend by https (pCaPath==NULL : do not verify the certification on server)
-			virtual Boolean Gets(TransPara& Para, String& strErrorMessage, const SByteArray pCaPath = NULL) = 0;
+			virtual Boolean Gets(std::string strRequestUrl,
+				std::string strRequestData,
+				std::string strResponseData,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL,
+				const SByteArray pCaPath = NULL) = 0;
 
 			// Get the error string
 			virtual None GetErrorInfo(Int32& iErrorCode, String& strErrorMsg) = 0;

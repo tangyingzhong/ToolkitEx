@@ -19,6 +19,62 @@ namespace System
 {
 	namespace Network
 	{
+		struct TransPara
+		{
+			// Url
+			std::string strRequestUrl;
+
+			// Post para
+			std::string strPostPara;
+
+			// Respond data
+			std::string strResponse;
+
+			// User data
+			Object pUserData;
+
+			// Upload progress call back func
+			UploadProgressProc UploadFunc;
+
+			// Download progress call back func
+			DownLoadProgressProc DownloadFunc;
+
+			TransPara()
+			{
+				Clear();
+			}
+
+			None Set(std::string strReqUrl,
+				std::string strReqData,
+				std::string strResponseData,
+				UploadProgressProc pUploadFunc,
+				DownLoadProgressProc pDownloadFunc,
+				Object pUser)
+			{
+				strRequestUrl = strReqUrl;
+				strPostPara = strReqData;
+				strResponse = strResponseData;
+				UploadFunc = pUploadFunc;
+				DownloadFunc = pDownloadFunc;
+				pUserData = pUser;
+			}
+
+			None Clear()
+			{
+				strRequestUrl = "";
+
+				strPostPara = "";
+
+				strResponse = "";
+
+				pUserData = NULL;
+
+				UploadFunc = NULL;
+
+				DownloadFunc = NULL;
+			}
+		};
+
 		class LibCurl:public ILibCurl
 		{
 		public:
@@ -50,22 +106,47 @@ namespace System
 			// Get the current libcurl version
 			virtual String GetCurVersion();
 
+			// Set time out
+			virtual None SetTimeout(UInt32 iSeconds);
+
 			// Set head for url
 			virtual HeadList SetRequestHead(String strHeadType = String(_T("Content-Type")),
 				String strProtocol = String(_T("application/json")),
 				String strEncodeType = String(_T("charset=UTF-8")));
 
 			// Post the request by http
-			virtual Boolean Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessage);
+			virtual Boolean Post(std::string strRequestUrl,
+				std::string strRequestData,
+				std::string strResponseData,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL);
 
 			// Get the respoend by http
-			virtual Boolean Get(TransPara& Para, Int32& iErrorCode,String& strErrorMessage);
+			virtual Boolean Get(std::string strRequestUrl,
+				std::string strRequestData,
+				std::string strResponseData,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL);
 
 			// Post the request by https (pCaPath==NULL : do not verify the certification on server)
-			virtual Boolean Posts(TransPara& Para, String& strErrorMessage, const SByteArray pCaPath = NULL);
+			virtual Boolean Posts(std::string strRequestUrl,
+				std::string strRequestData,
+				std::string strResponseData,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL,
+				const SByteArray pCaPath = NULL);
 
 			// Get the respoend by https (pCaPath==NULL : do not verify the certification on server)
-			virtual Boolean Gets(TransPara& Para, String& strErrorMessage, const SByteArray pCaPath = NULL);
+			virtual Boolean Gets(std::string strRequestUrl,
+				std::string strRequestData,
+				std::string strResponseData,
+				Object pUserData = NULL,
+				UploadProgressProc pUploadFunc = NULL,
+				DownLoadProgressProc pDownloadFunc = NULL,
+				const SByteArray pCaPath = NULL);
 
 			// Get the error string
 			virtual None GetErrorInfo(Int32& iErrorCode, String& strErrorMsg);
@@ -154,6 +235,18 @@ namespace System
 				m_strErrorMsg = strErrorMsg;
 			}
 
+			// Get the TimeoutS
+			inline UInt32 GetTimeoutS() const
+			{
+				return m_iTimeoutS;
+			}
+
+			// Set the TimeoutS
+			inline void SetTimeoutS(UInt32 iTimeoutS)
+			{
+				m_iTimeoutS = iTimeoutS;
+			}
+
 		private:
 			// Is curl initialized
 			static Boolean m_bIsInit;
@@ -161,6 +254,9 @@ namespace System
 			// Transfer paramenter
 			TransPara m_TransPara;
 
+			// Timeout 
+			UInt32 m_iTimeoutS;
+		
 			// Error code
 			Int32 m_iErrorCode;
 			

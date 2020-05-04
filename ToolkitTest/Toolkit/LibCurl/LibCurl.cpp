@@ -10,6 +10,7 @@ Boolean LibCurl::m_bIsInit = false;
 
 // Construct the LibCurl
 LibCurl::LibCurl() :
+	m_iTimeoutS(1),
 	m_iErrorCode(CURLE_OK),
 	m_strErrorMsg(String("")),
 	m_bDisposed(false)
@@ -63,6 +64,12 @@ None LibCurl::DestoryCurl()
 	{
 		curl_global_cleanup();
 	}
+}
+
+// Set time out
+None LibCurl::SetTimeout(UInt32 iSeconds)
+{
+	SetTimeoutS(iSeconds);
 }
 
 // Get the error string
@@ -123,6 +130,10 @@ size_t LibCurl::OnWriteData(void* buffer,
 	void* lpVoid)
 {
 	LibCurl* pThis = (LibCurl*)lpVoid;
+	if (pThis == NULL)
+	{
+		return -1;
+	}
 
 	size_t iTotalSize = size * nmemb;
 
@@ -145,7 +156,6 @@ int LibCurl::ProgressCallback(void* pUserData,
 	double NowUpload)
 {
 	LibCurl* pThis = (LibCurl*)pUserData;
-
 	if (pThis == NULL)
 	{
 		return -1;
@@ -234,16 +244,26 @@ LibCurl::HeadList LibCurl::SetRequestHead(String strHeadType,
 }
 
 // Post the request by http
-Boolean LibCurl::Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessage)
+Boolean LibCurl::Post(std::string strRequestUrl,
+	std::string strRequestData,
+	std::string strResponseData,
+	Object pUserData,
+	UploadProgressProc pUploadFunc,
+	DownLoadProgressProc pDownloadFunc)
 {
-	if (Para.strRequestUrl.empty())
+	if (strRequestUrl.empty())
 	{
 		SetErrorInfo(CURLE_URL_MALFORMAT, String("URL is empty!"));
 
 		return false;
 	}
 
-	m_TransPara = Para;
+	m_TransPara.Set(strRequestUrl, 
+		strRequestData, 
+		strResponseData, 
+		pUploadFunc, 
+		pDownloadFunc, 
+		pUserData);
 
 	// Create an url
 	UrlHandle pHandle;
@@ -261,13 +281,13 @@ Boolean LibCurl::Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessag
 
 	curl_easy_setopt(pHandle, CURLOPT_HTTPHEADER, pList);
 
-	curl_easy_setopt(pHandle, CURLOPT_URL, (char*)Para.strRequestUrl.c_str());
+	curl_easy_setopt(pHandle, CURLOPT_URL, (char*)strRequestUrl.c_str());
 
 	curl_easy_setopt(pHandle, CURLOPT_POST, 1);
 
-	curl_easy_setopt(pHandle, CURLOPT_POSTFIELDS, (char*)Para.strPostPara.c_str());
+	curl_easy_setopt(pHandle, CURLOPT_POSTFIELDS, (char*)strRequestData.c_str());
 
-	curl_easy_setopt(pHandle, CURLOPT_POSTFIELDSIZE, Para.strPostPara.size());
+	curl_easy_setopt(pHandle, CURLOPT_POSTFIELDSIZE, strRequestData.size());
 
 	curl_easy_setopt(pHandle, CURLOPT_READFUNCTION, NULL);
 
@@ -287,22 +307,24 @@ Boolean LibCurl::Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessag
 		curl_easy_setopt(pHandle, CURLOPT_PROGRESSDATA, this);
 	}
 
-	m_TransPara.strResponse.clear();
-
 	curl_easy_setopt(pHandle, CURLOPT_NOSIGNAL, 1);
 
 	curl_easy_setopt(pHandle, CURLOPT_CONNECTTIMEOUT, 3);
 
-	curl_easy_setopt(pHandle, CURLOPT_TIMEOUT, Para.iSecondTimeout);
+	curl_easy_setopt(pHandle, CURLOPT_TIMEOUT, GetTimeoutS());
+
+	m_TransPara.strResponse.clear();
 
 	CURLcode eRetCode = curl_easy_perform(pHandle);
 	if (eRetCode != CURLE_OK)
 	{
+		CURLcode iErrorCode;
+
 		curl_easy_getinfo(pHandle, CURLINFO_RESPONSE_CODE, &iErrorCode);
 
-		strErrorMessage = GetCurlErrorInfo(eRetCode);
+		String strErrorMessage = GetCurlErrorInfo(iErrorCode);
 
-		SetErrorInfo(eRetCode, strErrorMessage);
+		SetErrorInfo(iErrorCode, strErrorMessage);
 
 		// Clear the head list
 		ClearRequeHeadHead(pList);
@@ -314,7 +336,7 @@ Boolean LibCurl::Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessag
 	}
 
 	// Change the respond data encode
-	Para.strResponse = m_TransPara.strResponse;
+	strResponseData = m_TransPara.strResponse;
 
 	// Clear the head list
 	ClearRequeHeadHead(pList);
@@ -326,14 +348,24 @@ Boolean LibCurl::Post(TransPara& Para, Int32& iErrorCode, String& strErrorMessag
 }
 
 // Get the respoend by http
-Boolean LibCurl::Get(TransPara& Para, Int32& iErrorCode, String& strErrorMessage)
+	Boolean LibCurl::Get(std::string strRequestUrl,
+		std::string strRequestData,
+		std::string strResponseData,
+		Object pUserData,
+		UploadProgressProc pUploadFunc,
+		DownLoadProgressProc pDownloadFunc)
 {
-	if (Para.strRequestUrl.empty())
+	if (strRequestUrl.empty())
 	{
 		return false;
 	}
 
-	m_TransPara = Para;
+	m_TransPara.Set(strRequestUrl,
+		strRequestData,
+		strResponseData,
+		pUploadFunc,
+		pDownloadFunc,
+		pUserData);
 
 	// Create an url
 	UrlHandle pHandle;
@@ -344,7 +376,7 @@ Boolean LibCurl::Get(TransPara& Para, Int32& iErrorCode, String& strErrorMessage
 
 	curl_easy_setopt(pHandle, CURLOPT_HTTPGET, 1);
 
-	curl_easy_setopt(pHandle, CURLOPT_URL, (char*)Para.strRequestUrl.c_str());
+	curl_easy_setopt(pHandle, CURLOPT_URL, (char*)strRequestUrl.c_str());
 
 	curl_easy_setopt(pHandle, CURLOPT_FOLLOWLOCATION, 1);
 
@@ -364,22 +396,24 @@ Boolean LibCurl::Get(TransPara& Para, Int32& iErrorCode, String& strErrorMessage
 
 	curl_easy_setopt(pHandle, CURLOPT_NOPROGRESS, FALSE);
 
-	m_TransPara.strResponse.clear();
-
 	curl_easy_setopt(pHandle, CURLOPT_NOSIGNAL, 1);
 
 	curl_easy_setopt(pHandle, CURLOPT_CONNECTTIMEOUT, 3);
 
-	curl_easy_setopt(pHandle, CURLOPT_TIMEOUT, Para.iSecondTimeout);
+	curl_easy_setopt(pHandle, CURLOPT_TIMEOUT, GetTimeoutS());
+
+	m_TransPara.strResponse.clear();
 
 	CURLcode eRetCode = curl_easy_perform(pHandle);
 	if (eRetCode != CURLE_OK)
 	{
+		CURLcode iErrorCode;
+
 		curl_easy_getinfo(pHandle, CURLINFO_RESPONSE_CODE, &iErrorCode);
 
-		strErrorMessage = GetCurlErrorInfo(eRetCode);
+		String strErrorMessage = GetCurlErrorInfo(iErrorCode);
 
-		SetErrorInfo(eRetCode, strErrorMessage);
+		SetErrorInfo(iErrorCode, strErrorMessage);
 
 		// Destory the url
 		DestoryUrL(pHandle);
@@ -388,7 +422,7 @@ Boolean LibCurl::Get(TransPara& Para, Int32& iErrorCode, String& strErrorMessage
 	}
 
 	// Change the respond data encode
-	Para.strResponse = m_TransPara.strResponse;
+	strResponseData = m_TransPara.strResponse;
 
 	// Destory the url
 	DestoryUrL(pHandle);
@@ -397,14 +431,25 @@ Boolean LibCurl::Get(TransPara& Para, Int32& iErrorCode, String& strErrorMessage
 }
 
 // Post the request by https (pCaPath==NULL : do not verify the certification on server)
-Boolean LibCurl::Posts(TransPara& Para, String& strErrorMessage, const SByteArray pCaPath)
+	Boolean LibCurl::Posts(std::string strRequestUrl,
+		std::string strRequestData,
+		std::string strResponseData,
+		Object pUserData,
+		UploadProgressProc pUploadFunc,
+		DownLoadProgressProc pDownloadFunc ,
+		const SByteArray pCaPath)
 {
-	if (Para.strRequestUrl.empty())
+	if (strRequestUrl.empty())
 	{
 		return false;
 	}
 
-	m_TransPara = Para;
+	m_TransPara.Set(strRequestUrl,
+		strRequestData,
+		strResponseData,
+		pUploadFunc,
+		pDownloadFunc,
+		pUserData);
 
 	// Create an url
 	UrlHandle pHandle;
@@ -422,13 +467,13 @@ Boolean LibCurl::Posts(TransPara& Para, String& strErrorMessage, const SByteArra
 
 	curl_easy_setopt(pHandle, CURLOPT_HTTPHEADER, pList);
 
-	curl_easy_setopt(pHandle, CURLOPT_URL, (char*)Para.strRequestUrl.c_str());
+	curl_easy_setopt(pHandle, CURLOPT_URL, (char*)strRequestUrl.c_str());
 
 	curl_easy_setopt(pHandle, CURLOPT_POST, 1);
 
-	curl_easy_setopt(pHandle, CURLOPT_POSTFIELDS, Para.strPostPara.c_str());
+	curl_easy_setopt(pHandle, CURLOPT_POSTFIELDS,(char*)strRequestData.c_str());
 
-	curl_easy_setopt(pHandle, CURLOPT_POSTFIELDSIZE, Para.strPostPara.size());
+	curl_easy_setopt(pHandle, CURLOPT_POSTFIELDSIZE, strRequestData.size());
 
 	curl_easy_setopt(pHandle, CURLOPT_READFUNCTION, NULL);
 
@@ -445,8 +490,6 @@ Boolean LibCurl::Posts(TransPara& Para, String& strErrorMessage, const SByteArra
 
 		curl_easy_setopt(pHandle, CURLOPT_PROGRESSDATA, this);
 	}
-
-	m_TransPara.strResponse.clear();
 
 	if (pCaPath == NULL)
 	{
@@ -463,14 +506,20 @@ Boolean LibCurl::Posts(TransPara& Para, String& strErrorMessage, const SByteArra
 
 	curl_easy_setopt(pHandle, CURLOPT_CONNECTTIMEOUT, 3);
 
-	curl_easy_setopt(pHandle, CURLOPT_TIMEOUT, Para.iSecondTimeout);
+	curl_easy_setopt(pHandle, CURLOPT_TIMEOUT, GetTimeoutS());
+
+	m_TransPara.strResponse.clear();
 
 	CURLcode eRetCode = curl_easy_perform(pHandle);
 	if (eRetCode != CURLE_OK)
 	{
-		strErrorMessage = GetCurlErrorInfo(eRetCode);
+		CURLcode iErrorCode;
 
-		SetErrorInfo(eRetCode, strErrorMessage);
+		curl_easy_getinfo(pHandle, CURLINFO_RESPONSE_CODE, &iErrorCode);
+
+		String strErrorMessage = GetCurlErrorInfo(iErrorCode);
+
+		SetErrorInfo(iErrorCode, strErrorMessage);
 
 		// Clear the head list
 		ClearRequeHeadHead(pList);
@@ -482,7 +531,7 @@ Boolean LibCurl::Posts(TransPara& Para, String& strErrorMessage, const SByteArra
 	}
 
 	// Change the respond data encode
-	Para.strResponse = m_TransPara.strResponse;
+	strResponseData = m_TransPara.strResponse;
 
 	// Clear the head list
 	ClearRequeHeadHead(pList);
@@ -494,14 +543,25 @@ Boolean LibCurl::Posts(TransPara& Para, String& strErrorMessage, const SByteArra
 }
 
 // Get the respoend by https (pCaPath==NULL : do not verify the certification on server)
-Boolean LibCurl::Gets(TransPara& Para, String& strErrorMessage, const SByteArray pCaPath)
+Boolean LibCurl::Gets(std::string strRequestUrl,
+	std::string strRequestData,
+	std::string strResponseData,
+	Object pUserData,
+	UploadProgressProc pUploadFunc,
+	DownLoadProgressProc pDownloadFunc,
+	const SByteArray pCaPath)
 {
-	if (Para.strRequestUrl.empty())
+	if (strRequestUrl.empty())
 	{
 		return false;
 	}
 
-	m_TransPara = Para;
+	m_TransPara.Set(strRequestUrl,
+		strRequestData,
+		strResponseData,
+		pUploadFunc,
+		pDownloadFunc,
+		pUserData);
 
 	// Create an url
 	UrlHandle pHandle;
@@ -510,7 +570,7 @@ Boolean LibCurl::Gets(TransPara& Para, String& strErrorMessage, const SByteArray
 		return false;
 	}
 
-	curl_easy_setopt(pHandle, CURLOPT_URL, (char*)Para.strRequestUrl.c_str());
+	curl_easy_setopt(pHandle, CURLOPT_URL, (char*)strRequestUrl.c_str());
 
 	curl_easy_setopt(pHandle, CURLOPT_READFUNCTION, NULL);
 
@@ -528,8 +588,6 @@ Boolean LibCurl::Gets(TransPara& Para, String& strErrorMessage, const SByteArray
 		curl_easy_setopt(pHandle, CURLOPT_PROGRESSDATA, this);
 	}
 
-	m_TransPara.strResponse.clear();
-
 	if (pCaPath == NULL)
 	{
 		curl_easy_setopt(pHandle, CURLOPT_SSL_VERIFYPEER, false);
@@ -545,14 +603,20 @@ Boolean LibCurl::Gets(TransPara& Para, String& strErrorMessage, const SByteArray
 
 	curl_easy_setopt(pHandle, CURLOPT_CONNECTTIMEOUT,3);
 
-	curl_easy_setopt(pHandle, CURLOPT_TIMEOUT, Para.iSecondTimeout);
+	curl_easy_setopt(pHandle, CURLOPT_TIMEOUT, GetTimeoutS());
 
+	m_TransPara.strResponse.clear();
+	
 	CURLcode eRetCode = curl_easy_perform(pHandle);
 	if (eRetCode != CURLE_OK)
 	{
-		strErrorMessage = GetCurlErrorInfo(eRetCode);
-		
-		SetErrorInfo(eRetCode, strErrorMessage);
+		CURLcode iErrorCode;
+
+		curl_easy_getinfo(pHandle, CURLINFO_RESPONSE_CODE, &iErrorCode);
+
+		String strErrorMessage = GetCurlErrorInfo(iErrorCode);
+
+		SetErrorInfo(iErrorCode, strErrorMessage);
 
 		// Destory the url
 		DestoryUrL(pHandle);
@@ -561,7 +625,7 @@ Boolean LibCurl::Gets(TransPara& Para, String& strErrorMessage, const SByteArray
 	}
 
 	// Change the respond data encode
-	Para.strResponse = m_TransPara.strResponse;
+	strResponseData = m_TransPara.strResponse;
 
 	// Destory the url
 	DestoryUrL(pHandle);
