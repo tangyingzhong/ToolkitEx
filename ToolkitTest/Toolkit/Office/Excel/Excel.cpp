@@ -47,6 +47,8 @@ None Excel::Destory()
 None Excel::CreateBook()
 {
 	SetBook(xlCreateXMLBook());
+
+	GetBook()->setKey(L"Michael Hillier", L"windows-222329040ec5ec046fb46767a7h1gej6");
 }
 
 // Destory the book

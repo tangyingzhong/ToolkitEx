@@ -16,7 +16,7 @@ int DownLoad(Object pUserData,
 
 int main()
 {
-	LibCurl::InitCurl();
+	/*LibCurl::InitCurl();
 
 	LibCurl CurObject;
 
@@ -53,7 +53,7 @@ int main()
 		}
 	}
 
-	LibCurl::DestoryCurl();
+	LibCurl::DestoryCurl();*/
 
 
 	/*SqliteDB db;
@@ -104,9 +104,43 @@ int main()
 	db.Close();*/
 
 
+	Excel ExcelHelper;
+
+	ExcelHelper.Load(String(_T("D:\\软件参数对照表.xlsx")));
+
+	IExcel::AlterType Value0;
+
+	ExcelHelper.GetCell(0, 0, Value0);
+
+	IExcel::AlterType Value;
+
+	ExcelHelper.GetCell(3, 0, Value);
+
+	_bstr_t strValue = Value.bstrVal;
+
+	String strFinalValue = std::string(strValue);
+
+	ExcelHelper.GetCell(40, 0, Value);
+
+	_bstr_t strValue2 = Value.bstrVal;
+
+	String strFinalValue2 = std::string(strValue2);
+
+	ExcelHelper.GetCell(1, 1, Value);
+
+	Int32 iValue = (Int32)Value.dblVal;
+
+	ExcelHelper.GetCell(-1, 1, Value);
+
+	ExcelHelper.GetCell(0, 1999999, Value);
+
+	_bstr_t strValue3 = Value.bstrVal;
+
+	String strFinalValue3 = std::string(strValue3);
+
 	/*Excel MyExcel;
 
-	if (!MyExcel.Load(String(_T("E:\\78.csv"))))
+	if (!MyExcel.Load(String(_T("D:\\78.csv"))))
 	{
 		std::cout << MyExcel.GetErrorMsg().ToANSIData() << std::endl;
 
