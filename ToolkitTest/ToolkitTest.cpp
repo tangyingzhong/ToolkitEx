@@ -11,16 +11,81 @@ int DownLoad(Object pUserData,
 	Real TotalToDown,
 	Real NowDownload)
 {
+	float fPercent = 100 * NowDownload / TotalToDown;
+
+	std::cout << "Downloading: "<< std::to_string(fPercent) <<"%"<< std::endl;
+
+	return 0;
+}
+
+int Upload(Object pUserData,
+	Real TotalToUpload,
+	Real NowUpload)
+{
+	float fPercent = 100 * NowUpload / TotalToUpload;
+
+	std::cout << "Uploading: " << std::to_string(fPercent) << "%" << std::endl;
+
 	return 0;
 }
 
 int main()
 {
-	/*LibCurl::InitCurl();
+	LibCurl::InitCurl();
 
 	LibCurl CurObject;
 
-	String strVersion = CurObject.GetCurVersion();
+	/*bool bUploadOk = CurObject.FtpDownload("ftp://127.0.0.1/test/qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
+		"D:\\qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
+		"abc", 
+		"tang1028",
+		"21",
+		NULL,
+		DownLoad);*/
+
+	bool bUploadOk = CurObject.FtpUpload("ftp://127.0.0.1/test/qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
+		"D:\\computer\\qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
+		"abc", 
+		"tang1028",
+		"21",
+		Upload);
+
+	if (!bUploadOk)
+	{
+		Int32 iErrorCode = 0;
+
+		std::string strErrorMsg;
+
+		CurObject.GetErrorInfo(iErrorCode, strErrorMsg);
+
+		std::cout << strErrorMsg << std::endl;
+
+		return -1;
+	}
+
+	std::cout << "Finish one" << std::endl;
+
+	bool bUploadOk1 = CurObject.FtpUpload("ftp://127.0.0.1/test/12.exe",
+		"D:\\computer\\12.exe",
+		"abc",
+		"tang1028",
+		"21",
+		Upload);
+
+	if (!bUploadOk1)
+	{
+		Int32 iErrorCode = 0;
+
+		std::string strErrorMsg;
+
+		CurObject.GetErrorInfo(iErrorCode, strErrorMsg);
+
+		std::cout << strErrorMsg << std::endl;
+
+		return -1;
+	}
+
+	/*String strVersion = CurObject.GetCurVersion();
 
 	std::cout << strVersion.ToANSIData() << std::endl;
 
@@ -29,7 +94,7 @@ int main()
 
 		std::string strRespondData;
 
-		if (!CurObject.Get("www.baidu.com","",strRespondData))
+		if (!CurObject.Get("https://www.baidu.com","",strRespondData))
 		{
 			Int32 iErrorCode = 0;
 
@@ -51,9 +116,9 @@ int main()
 
 			FileHelper.Close();
 		}
-	}
+	}*/
 
-	LibCurl::DestoryCurl();*/
+	LibCurl::DestoryCurl();
 
 
 	/*SqliteDB db;

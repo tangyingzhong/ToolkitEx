@@ -1,19 +1,17 @@
-#include "Tool/Encoding/ANSI.h"
-#include "Tool/Encoding/UTF8.h"
-#include "Tool/Encoding/Unicode.h"
 #include "LibCurl.h"
-
-using namespace System::Encoding;
-using namespace System::Network;
 
 Boolean LibCurl::m_bIsInit = false;
 
+LibCurl::CurlRun* LibCurl::m_pCurlRun = new LibCurl::CurlRun();
+
 // Construct the LibCurl
 LibCurl::LibCurl() :
+	m_bIsFtpUpload(false),
+	m_dUploadTotalSize(0.0),
 	m_pHeadList(NULL),
-	m_iTimeoutS(1),
+	m_iTimeoutS(60),
 	m_iErrorCode(CURLE_OK),
-	m_strErrorMsg(String("")),
+	m_strErrorMsg(""),
 	m_bDisposed(false)
 {
 	Initialize();
@@ -43,15 +41,18 @@ None LibCurl::Destory()
 // Init the curl
 None LibCurl::InitCurl()
 {
-	RetCode iRetCode = curl_global_init(CURL_GLOBAL_ALL);
+	if (!GetIsInit())
+	{
+		RetCode iRetCode = curl_global_init(CURL_GLOBAL_ALL);
 
-	if (iRetCode == CURLE_FAILED_INIT)
-	{
-		SetIsInit(false);
-	}
-	else
-	{
-		SetIsInit(true);
+		if (iRetCode == CURLE_FAILED_INIT)
+		{
+			SetIsInit(false);
+		}
+		else
+		{
+			SetIsInit(true);
+		}
 	}
 }
 
@@ -61,6 +62,8 @@ None LibCurl::DestoryCurl()
 	if (GetIsInit())
 	{
 		curl_global_cleanup();
+
+		SetIsInit(false);
 	}
 }
 
@@ -70,20 +73,20 @@ None LibCurl::SetTimeout(UInt32 iSeconds)
 	SetTimeoutS(iSeconds);
 }
 
-// Get the error string
+// Get the error std::string
 None LibCurl::GetErrorInfo(Int32& iErrorCode, std::string& strErrorMsg)
 {
 	iErrorCode = GetErrorCode();
 
-	strErrorMsg = GetErrorMsg().ToANSIData();
+	strErrorMsg = GetErrorMsg();
 }
 
 // Get the current libcurl version
-std::string  LibCurl::GetCurVersion()
+std::string LibCurl::GetCurVersion()
 {
 	if (!GetIsInit())
 	{
-		SetErrorInfo(CURLE_FAILED_INIT, String("Libcurl is not initialized!"));
+		SetErrorInfo(CURLE_FAILED_INIT, "Libcurl is not initialized!");
 
 		return "";
 	}
@@ -100,7 +103,7 @@ Boolean LibCurl::CreateUrL(UrlHandle& pHandle)
 
 	if (pHandle == NULL)
 	{
-		String strErrorMessage = GetCurlErrorInfo(CURLE_FAILED_INIT);
+		std::string strErrorMessage = GetCurlErrorInfo(CURLE_FAILED_INIT);
 
 		SetErrorInfo(CURLE_FAILED_INIT, strErrorMessage);
 
@@ -134,6 +137,23 @@ size_t LibCurl::OnReadData(void* buffer,
 	}
 
 	size_t nReadByte = fread(buffer, size, nmemb, pFile);
+
+	return nReadByte;
+}
+
+// Write data (Called by url inner)
+size_t LibCurl::OnWriteFileData(void* buffer,
+	size_t size,
+	size_t nmemb,
+	void* lpVoid)
+{
+	FILE* pFile = static_cast<FILE*>(lpVoid);
+	if (pFile == NULL)
+	{
+		return CURL_READFUNC_ABORT;
+	}
+
+	size_t nReadByte = fwrite(buffer, size, nmemb, pFile);
 
 	return nReadByte;
 }
@@ -178,19 +198,30 @@ int LibCurl::ProgressCallback(void* pUserData,
 
 	if (pThis->m_TransPara.UploadFunc)
 	{
-		return pThis->m_TransPara.UploadFunc(pThis->m_TransPara.pUserData, TotalToUpload, NowUpload);
+		if (pThis->GetIsFtpUpload())
+		{
+			return pThis->m_TransPara.UploadFunc(pThis->m_TransPara.pUserData,
+				pThis->GetUploadTotalSize(),
+				NowUpload);
+		}
+
+		return pThis->m_TransPara.UploadFunc(pThis->m_TransPara.pUserData,
+			TotalToUpload,
+			NowUpload);
 	}
 
 	if (pThis->m_TransPara.DownloadFunc)
 	{
-		return pThis->m_TransPara.DownloadFunc(pThis->m_TransPara.pUserData, TotalToDownload, NowDownloaded);
+		return pThis->m_TransPara.DownloadFunc(pThis->m_TransPara.pUserData, 
+			TotalToDownload, 
+			NowDownloaded);
 	}
 
 	return 0;
 }
 
 // Set error info
-None LibCurl::SetErrorInfo(RetCode eRetCode, String strErrorMsg)
+None LibCurl::SetErrorInfo(RetCode eRetCode, std::string strErrorMsg)
 {
 	SetErrorCode(eRetCode);
 
@@ -198,11 +229,11 @@ None LibCurl::SetErrorInfo(RetCode eRetCode, String strErrorMsg)
 }
 
 // Get error info
-String LibCurl::GetCurlErrorInfo(RetCode eRetCode)
+std::string LibCurl::GetCurlErrorInfo(RetCode eRetCode)
 {
 	std::string strErrorMsg=curl_easy_strerror(eRetCode);
 
-	String strMsg = String(strErrorMsg, ENCODE_UTF8);
+	std::string strMsg = std::string(strErrorMsg, ENCODE_UTF8);
 
 	return strMsg;
 }
@@ -223,7 +254,7 @@ Boolean LibCurl::IsCanOperate()
 {
 	if (!GetIsInit())
 	{
-		SetErrorInfo(CURLE_FAILED_INIT, String("LibCurl is not initialized yet !"));
+		SetErrorInfo(CURLE_FAILED_INIT, "LibCurl is not initialized yet !");
 
 		return false;
 	}
@@ -243,7 +274,7 @@ None LibCurl::SetRequestHead(std::string strHeadType,
 		return;
 	}
 
-	String strHeadInfo = strHeadType 
+	std::string strHeadInfo = strHeadType 
 		+ ":"
 		+ strProtocol 
 		+ ";"
@@ -251,11 +282,11 @@ None LibCurl::SetRequestHead(std::string strHeadType,
 
 	HeadList pHeadList = NULL;
 
-	pHeadList = curl_slist_append(pHeadList, strHeadInfo.ToUTF8Data().c_str());
+	pHeadList = curl_slist_append(pHeadList, strHeadInfo.c_str());
 
 	if (pHeadList==NULL)
 	{
-		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Head list is empty!"));
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, "Head list is empty!");
 
 		return;
 	} 
@@ -266,14 +297,14 @@ None LibCurl::SetRequestHead(std::string strHeadType,
 // Post the request by http
 Boolean LibCurl::Post(std::string strRequestUrl,
 	std::string strRequestData,
-	std::string strResponseData,
+	std::string& strResponseData,
 	Object pUserData,
-	UploadProgressProc pUploadFunc,
-	DownLoadProgressProc pDownloadFunc)
+	UploadProgress pUploadFunc,
+	DownLoadProgress pDownloadFunc)
 {
 	if (strRequestUrl.empty())
 	{
-		SetErrorInfo(CURLE_URL_MALFORMAT, String("URL is empty!"));
+		SetErrorInfo(CURLE_URL_MALFORMAT, "URL is empty!");
 
 		return false;
 	}
@@ -344,7 +375,7 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 
 		curl_easy_getinfo(pHandle, CURLINFO_RESPONSE_CODE, &iErrorCode);
 
-		String strErrorMessage = GetCurlErrorInfo(iErrorCode);
+		std::string strErrorMessage = GetCurlErrorInfo(iErrorCode);
 
 		SetErrorInfo(iErrorCode, strErrorMessage);
 
@@ -376,10 +407,10 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 // Get the respoend by http
 	Boolean LibCurl::Get(std::string strRequestUrl,
 		std::string strRequestData,
-		std::string strResponseData,
+		std::string& strResponseData,
 		Object pUserData,
-		UploadProgressProc pUploadFunc,
-		DownLoadProgressProc pDownloadFunc)
+		UploadProgress pUploadFunc,
+		DownLoadProgress pDownloadFunc)
 {
 	if (strRequestUrl.empty())
 	{
@@ -443,7 +474,7 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 
 		curl_easy_getinfo(pHandle, CURLINFO_RESPONSE_CODE, &iErrorCode);
 
-		String strErrorMessage = GetCurlErrorInfo(iErrorCode);
+		std::string strErrorMessage = GetCurlErrorInfo(iErrorCode);
 
 		SetErrorInfo(iErrorCode, strErrorMessage);
 
@@ -465,10 +496,10 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 // Post the request by https (pCaPath==NULL : do not verify the certification on server)
 	Boolean LibCurl::Posts(std::string strRequestUrl,
 		std::string strRequestData,
-		std::string strResponseData,
+		std::string& strResponseData,
 		Object pUserData,
-		UploadProgressProc pUploadFunc,
-		DownLoadProgressProc pDownloadFunc ,
+		UploadProgress pUploadFunc,
+		DownLoadProgress pDownloadFunc ,
 		const SByteArray pCaPath)
 {
 	if (strRequestUrl.empty())
@@ -551,7 +582,7 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 
 		curl_easy_getinfo(pHandle, CURLINFO_RESPONSE_CODE, &iErrorCode);
 
-		String strErrorMessage = GetCurlErrorInfo(iErrorCode);
+		std::string strErrorMessage = GetCurlErrorInfo(iErrorCode);
 
 		SetErrorInfo(iErrorCode, strErrorMessage);
 
@@ -583,10 +614,10 @@ Boolean LibCurl::Post(std::string strRequestUrl,
 // Get the respoend by https (pCaPath==NULL : do not verify the certification on server)
 Boolean LibCurl::Gets(std::string strRequestUrl,
 	std::string strRequestData,
-	std::string strResponseData,
+	std::string& strResponseData,
 	Object pUserData,
-	UploadProgressProc pUploadFunc,
-	DownLoadProgressProc pDownloadFunc,
+	UploadProgress pUploadFunc,
+	DownLoadProgress pDownloadFunc,
 	const SByteArray pCaPath)
 {
 	if (strRequestUrl.empty())
@@ -658,7 +689,7 @@ Boolean LibCurl::Gets(std::string strRequestUrl,
 
 		curl_easy_getinfo(pHandle, CURLINFO_RESPONSE_CODE, &iErrorCode);
 
-		String strErrorMessage = GetCurlErrorInfo(iErrorCode);
+		std::string strErrorMessage = GetCurlErrorInfo(iErrorCode);
 
 		SetErrorInfo(iErrorCode, strErrorMessage);
 
@@ -699,22 +730,23 @@ Boolean LibCurl::FtpUpload(const std::string strRemoteFilePath,
 	const std::string strLocalFilePath,
 	const std::string strUserName,
 	const std::string strPassword,
+	const std::string strPortNo,
+	UploadProgress pUploadFunc,
+	DownLoadProgress pDownloadFunc,
 	long TimeoutS,
 	Int32 iTryCount,
-	Object pUserData,
-	UploadProgressProc pUploadFunc,
-	DownLoadProgressProc pDownloadFunc)
+	Object pUserData)
 {
 	if (strLocalFilePath.empty())
 	{
-		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Local file path is empty !"));
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, "Local file path is empty !");
 
 		return false;
 	}
 
 	if (strRemoteFilePath.empty())
 	{
-		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Remote file path is empty !"));
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, "Remote file path is empty !");
 
 		return false;
 	}
@@ -732,8 +764,24 @@ Boolean LibCurl::FtpUpload(const std::string strRemoteFilePath,
 		pDownloadFunc,
 		pUserData);
 
+	SetTimeout(TimeoutS);
+
 	// Compose the user name and password
 	std::string strUserKey = strUserName + ":" + strPassword;
+
+	// Get file size
+	struct stat FileInfo;
+
+	curl_off_t iFileSize = -1;
+
+	if (stat(strLocalFilePath.c_str(), &FileInfo) == 0)
+	{
+		iFileSize = FileInfo.st_size;
+
+		SetUploadTotalSize((double)iFileSize);
+
+		SetIsFtpUpload(true);
+	}
 
 	// Open the local file
 	FILE* pFile = NULL;
@@ -741,7 +789,11 @@ Boolean LibCurl::FtpUpload(const std::string strRemoteFilePath,
 	pFile = fopen(strLocalFilePath.c_str(), "rb");
 	if (pFile==NULL)
 	{
-		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Failed to open local file!"));
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, "Failed to open local file!");
+
+		SetUploadTotalSize(0.0);
+
+		SetIsFtpUpload(false);
 
 		return false;
 	}
@@ -750,6 +802,10 @@ Boolean LibCurl::FtpUpload(const std::string strRemoteFilePath,
 	UrlHandle pHandle;
 	if (!CreateUrL(pHandle))
 	{
+		SetUploadTotalSize(0.0);
+
+		SetIsFtpUpload(false);
+
 		return false;
 	}
 
@@ -761,7 +817,7 @@ Boolean LibCurl::FtpUpload(const std::string strRemoteFilePath,
 
 	if (TimeoutS)
 	{
-		curl_easy_setopt(pHandle, CURLOPT_FTP_RESPONSE_TIMEOUT, TimeoutS);
+		curl_easy_setopt(pHandle, CURLOPT_FTP_RESPONSE_TIMEOUT, GetTimeoutS());
 	}
 	
 	curl_easy_setopt(pHandle, CURLOPT_HEADERFUNCTION, GetContentLength);
@@ -776,9 +832,150 @@ Boolean LibCurl::FtpUpload(const std::string strRemoteFilePath,
 
 	curl_easy_setopt(pHandle, CURLOPT_READDATA, pFile);
 
-	curl_easy_setopt(pHandle, CURLOPT_FTPPORT, "-");
+	curl_easy_setopt(pHandle, CURLOPT_FTPPORT, strPortNo.c_str());
 
 	curl_easy_setopt(pHandle, CURLOPT_FTP_CREATE_MISSING_DIRS, 1L);
+
+	{
+		curl_easy_setopt(pHandle, CURLOPT_NOPROGRESS, false);
+
+		curl_easy_setopt(pHandle, CURLOPT_PROGRESSFUNCTION, ProgressCallback);
+
+		curl_easy_setopt(pHandle, CURLOPT_PROGRESSDATA, this);
+	}
+
+	CURLcode eRetCode = curl_easy_perform(pHandle);
+
+	// Finish the uploading
+	fclose(pFile);
+
+	if (eRetCode != CURLE_OK)
+	{
+		std::string strErrorMessage = GetCurlErrorInfo(eRetCode);
+
+		SetErrorInfo(eRetCode, strErrorMessage);
+
+		// Destory the url
+		DestoryUrL(pHandle);
+
+		SetUploadTotalSize(0.0);
+
+		SetIsFtpUpload(false);
+
+		return false;
+	}
+
+	// Destory the url
+	DestoryUrL(pHandle);
+
+	SetUploadTotalSize(0.0);
+
+	SetIsFtpUpload(false);
+
+	return true;
+}
+
+// Ftp download
+Boolean LibCurl::FtpDownload(const std::string strRemoteFilePath,
+	const std::string strLocalFilePath,
+	const std::string strUserName,
+	const std::string strPassword,
+	const std::string strPortNo,
+	UploadProgress pUploadFunc,
+	DownLoadProgress pDownloadFunc,
+	long TimeoutS,
+	Int32 iTryCount,
+	Object pUserData)
+{
+	if (strLocalFilePath.empty())
+	{
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, "Local file path is empty !");
+
+		return false;
+	}
+
+	if (strRemoteFilePath.empty())
+	{
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, "Remote file path is empty !");
+
+		return false;
+	}
+
+	// Is can continue operation
+	if (!IsCanOperate())
+	{
+		return false;
+	}
+
+	m_TransPara.Set(strRemoteFilePath,
+		"",
+		"",
+		pUploadFunc,
+		pDownloadFunc,
+		pUserData);
+
+	SetTimeout(TimeoutS);
+
+	// Compose the user name and password
+	std::string strUserKey = strUserName + ":" + strPassword;
+
+	// Set resume mode
+	struct stat FileInfo;
+
+	Int32 iUseResume = 0;
+
+	curl_off_t iLocalFileLength = -1;
+
+	if (stat(strLocalFilePath.c_str(),&FileInfo) == 0)
+	{
+		iLocalFileLength = FileInfo.st_size;
+
+		iUseResume = 1;
+	}
+
+	// Open local file
+	FILE* pFile = NULL;
+
+	pFile = fopen(strLocalFilePath.c_str(), "ab+");
+	if (pFile==NULL)
+	{
+		SetErrorInfo(CURLE_UNKNOWN_OPTION, "Failed to open local file!");
+
+		return false;
+	}
+
+	// Create an url
+	UrlHandle pHandle;
+	if (!CreateUrL(pHandle))
+	{
+		return false;
+	}
+
+	curl_easy_setopt(pHandle, CURLOPT_URL, strRemoteFilePath.c_str());
+
+	curl_easy_setopt(pHandle, CURLOPT_USERPWD, strUserKey.c_str());
+
+	curl_easy_setopt(pHandle, CURLOPT_CONNECTTIMEOUT, GetTimeoutS());
+
+	curl_easy_setopt(pHandle, CURLOPT_HEADERFUNCTION, GetContentLength);
+
+	long iUploadLength = 0;
+
+	curl_easy_setopt(pHandle, CURLOPT_HEADERDATA, &iUploadLength);
+
+	long iFileSize = 0;
+
+	curl_easy_setopt(pHandle, CURLOPT_HEADERDATA, &iFileSize);
+
+	curl_easy_setopt(pHandle, CURLOPT_RESUME_FROM_LARGE, iUseResume ? iLocalFileLength : 0);
+
+	curl_easy_setopt(pHandle, CURLOPT_WRITEFUNCTION, OnWriteData);
+
+	curl_easy_setopt(pHandle, CURLOPT_WRITEFUNCTION, OnWriteFileData);
+
+	curl_easy_setopt(pHandle, CURLOPT_WRITEDATA, pFile);
+
+	curl_easy_setopt(pHandle, CURLOPT_FTPPORT, strPortNo.c_str());
 
 	{
 		curl_easy_setopt(pHandle, CURLOPT_NOPROGRESS, false);
@@ -825,128 +1022,7 @@ Boolean LibCurl::FtpUpload(const std::string strRemoteFilePath,
 
 	if (eRetCode != CURLE_OK)
 	{
-		String strErrorMessage = GetCurlErrorInfo(eRetCode);
-
-		SetErrorInfo(eRetCode, strErrorMessage);
-
-		// Destory the url
-		DestoryUrL(pHandle);
-
-		return false;
-	}
-
-	// Destory the url
-	DestoryUrL(pHandle);
-
-	return true;
-}
-
-// Ftp download
-Boolean LibCurl::FtpDownload(const std::string strRemoteFilePath,
-	const std::string strLocalFilePath,
-	const std::string strUserName,
-	const std::string strPassword,
-	long TimeoutS,
-	Object pUserData,
-	UploadProgressProc pUploadFunc,
-	DownLoadProgressProc pDownloadFunc)
-{
-	if (strLocalFilePath.empty())
-	{
-		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Local file path is empty !"));
-
-		return false;
-	}
-
-	if (strRemoteFilePath.empty())
-	{
-		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Remote file path is empty !"));
-
-		return false;
-	}
-
-	// Is can continue operation
-	if (!IsCanOperate())
-	{
-		return false;
-	}
-
-	m_TransPara.Set(strRemoteFilePath,
-		"",
-		"",
-		pUploadFunc,
-		pDownloadFunc,
-		pUserData);
-
-	// Compose the user name and password
-	std::string strUserKey = strUserName + ":" + strPassword;
-
-	// Set resume mode
-	struct stat FileInfo;
-
-	Int32 iUseResume = 0;
-
-	curl_off_t iLocalFileLength = -1;
-
-	if (stat(strLocalFilePath.c_str(),&FileInfo))
-	{
-		iLocalFileLength = FileInfo.st_size;
-
-		iUseResume = 1;
-	}
-
-	// Open local file
-	FILE* pFile = NULL;
-
-	pFile = fopen(strLocalFilePath.c_str(), "ab+");
-	if (pFile==NULL)
-	{
-		SetErrorInfo(CURLE_UNKNOWN_OPTION, String("Failed to open local file!"));
-
-		return false;
-	}
-
-	// Create an url
-	UrlHandle pHandle;
-	if (!CreateUrL(pHandle))
-	{
-		return false;
-	}
-
-	curl_easy_setopt(pHandle, CURLOPT_URL, strRemoteFilePath.c_str());
-
-	curl_easy_setopt(pHandle, CURLOPT_USERPWD, strUserKey.c_str());
-
-	curl_easy_setopt(pHandle, CURLOPT_CONNECTTIMEOUT, GetTimeoutS());
-
-	curl_easy_setopt(pHandle, CURLOPT_HEADERFUNCTION, GetContentLength);
-
-	long iFileSize = 0;
-
-	curl_easy_setopt(pHandle, CURLOPT_HEADERDATA, &iFileSize);
-
-	curl_easy_setopt(pHandle, CURLOPT_RESUME_FROM_LARGE, iUseResume ? iLocalFileLength : 0);
-
-	curl_easy_setopt(pHandle, CURLOPT_WRITEDATA, pFile);
-
-	{
-		curl_easy_setopt(pHandle, CURLOPT_NOPROGRESS, false);
-
-		curl_easy_setopt(pHandle, CURLOPT_PROGRESSFUNCTION, ProgressCallback);
-
-		curl_easy_setopt(pHandle, CURLOPT_PROGRESSDATA, this);
-	}
-
-	CURLcode eRetCode = CURLE_GOT_NOTHING;
-
-	eRetCode = curl_easy_perform(pHandle);
-
-	// Finish the uploading
-	fclose(pFile);
-
-	if (eRetCode != CURLE_OK)
-	{
-		String strErrorMessage = GetCurlErrorInfo(eRetCode);
+		std::string strErrorMessage = GetCurlErrorInfo(eRetCode);
 
 		SetErrorInfo(eRetCode, strErrorMessage);
 
