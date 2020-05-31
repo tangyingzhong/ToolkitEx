@@ -35,13 +35,26 @@ int main()
 
 	LibCurl CurObject;
 
-	/*bool bUploadOk = CurObject.FtpDownload("ftp://127.0.0.1/test/qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
+	bool bDownloadOk = CurObject.FtpDownload("ftp://127.0.0.1/test/qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
 		"D:\\qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
 		"abc", 
 		"tang1028",
 		"21",
 		NULL,
-		DownLoad);*/
+		DownLoad);
+
+	if (!bDownloadOk)
+	{
+		Int32 iErrorCode = 0;
+
+		std::string strErrorMsg;
+
+		CurObject.GetErrorInfo(iErrorCode, strErrorMsg);
+
+		std::cout << strErrorMsg << std::endl;
+
+		return -1;
+	}
 
 	bool bUploadOk = CurObject.FtpUpload("ftp://127.0.0.1/test/qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
 		"D:\\computer\\qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
