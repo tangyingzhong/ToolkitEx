@@ -1,42 +1,156 @@
 #include <iostream>
-#include "Tool/Toolkit.h"
-#include "Toolkit/Office/Excel/Excel.h"
-#include "Toolkit/Office/Word/Word.h"
-#include "Toolkit/Sqlite/SqliteDB.h"
-#include "Toolkit/LibCurl/LibCurl.h"
+#include "Toolkit/MiniZip/MiniZip.h"
+//#include "Tool/Toolkit.h"
+//#include "Toolkit/Office/Excel/Excel.h"
+//#include "Toolkit/Office/Word/Word.h"
+//#include "Toolkit/Sqlite/SqliteDB.h"
+//#include "Toolkit/LibCurl/LibCurl.h"
 
-using namespace System::Office;
+//using namespace System::Office;
 
-int DownLoad(Object pUserData,
-	Real TotalToDown,
-	Real NowDownload)
-{
-	float fPercent = 100 * NowDownload / TotalToDown;
-
-	std::cout << "Downloading: "<< std::to_string(fPercent) <<"%"<< std::endl;
-
-	return 0;
-}
-
-int Upload(Object pUserData,
-	Real TotalToUpload,
-	Real NowUpload)
-{
-	float fPercent = 100 * NowUpload / TotalToUpload;
-
-	std::cout << "Uploading: " << std::to_string(fPercent) << "%" << std::endl;
-
-	return 0;
-}
+//int DownLoad(Object pUserData,
+//	Real TotalToDown,
+//	Real NowDownload)
+//{
+//	float fPercent = 100 * NowDownload / TotalToDown;
+//
+//	std::cout << "Downloading: "<< std::to_string(fPercent) <<"%"<< std::endl;
+//
+//	return 0;
+//}
+//
+//int Upload(Object pUserData,
+//	Real TotalToUpload,
+//	Real NowUpload)
+//{
+//	float fPercent = 100 * NowUpload / TotalToUpload;
+//
+//	std::cout << "Uploading: " << std::to_string(fPercent) << "%" << std::endl;
+//
+//	return 0;
+//}
 
 int main()
 {
-	LibCurl::InitCurl();
+	MiniZi MyZip;
+
+	/*if (!MyZip.CompressFile(String("D:\\Pool1.txt"), String("D:\\Pool.zip"), String("tang1028")))
+	{
+		std::cout << MyZip.GetErrorMsg().ToANSIData() << std::endl;
+
+		return false;
+	}*/
+
+	//if (!MyZip.CompressFile(String("D:\\林俊杰.-.[因你而在](2013)[WAV].zip"),
+	//	String("D:\\aa.zip"),
+	//	String("tang1028")))
+	//{
+	//	std::cout << MyZip.GetErrorMsg().ToANSIData() << std::endl;
+
+	//	return false;
+	//}
+
+	//if (!MyZip.UnCompress(String("D:\\aa.zip"),
+	//	String("D:\\yu"),
+	//	String("tang1028")))
+	//{
+	//	std::cout << MyZip.GetErrorMsg().ToANSIData() << std::endl;
+
+	//	return false;
+	//}
+
+	//// String("tang1028")
+	//if (!MyZip.CompressFolder(String("D:\\Good"),
+	//	String("D:\\Good.zip"),
+	//	String("")))
+	//{
+	//	std::cout << MyZip.GetErrorMsg().ToANSIData() << std::endl;
+
+	//	return false;
+	//}
+
+	/*if (!MyZip.UnCompress(String("D:\\OK.zip"), String("D:\\kill")))
+	{
+		std::cout << MyZip.GetErrorMsg().ToANSIData() << std::endl;
+
+		return false;
+	}*/
+
+	/*std::vector<String> Table;
+
+	Table.push_back(String("D:\\林俊杰.-.[因你而在](2013)[WAV].wav"));
+
+	Table.push_back(String("D:\\Win10激活工具.zip"));
+
+	Table.push_back(String("D:\\OK - Copy\\Pool2.txt"));
+
+	Table.push_back(String("D:\\wav\\林俊杰.-.[因你而在](2013)[WAV].wav"));
+
+	if (!MyZip.CompressFile(Table,
+		String("D:\\Total.zip"),
+		String("tang1028")))
+	{
+		std::cout << MyZip.GetErrorMsg().ToANSIData() << std::endl;
+
+		return false;
+	}*/
+
+	/*if (!MyZip.UnCompress(String("D:\\wav.zip"),
+		String("D:\\"),
+		String("tang1028")))
+	{
+		std::cout << MyZip.GetErrorMsg().ToANSIData() << std::endl;
+
+		return false;
+	}*/
+
+	/*if (!MyZip.UnCompress(String("D:\\Good.zip"),
+		String("D:\\PP"),
+		String("tang1028")))
+	{
+		std::cout << MyZip.GetErrorMsg().ToANSIData() << std::endl;
+
+		return false;
+	}*/
+
+	/*std::vector<String> FileTable;
+
+	if (!MyZip.GetFileListInZip(String("D:\\wav\\林俊杰.-.[因你而在](2013)[WAV].zip"),
+		FileTable))
+	{
+		std::cout << MyZip.GetErrorMsg().ToANSIData() << std::endl;
+
+		return false;
+	}
+
+	for (int index = 0; index < static_cast<int>(FileTable.size()); ++index)
+	{
+		std::cout << FileTable[index].ToANSIData() << std::endl;
+	}*/
+
+	if (MyZip.IsFileInZip(String("D:\\Good.zip"),
+		String("Win10激活工具.zip"),
+		true,
+		String("tang1028")))
+	{
+		std::cout << "File is existed in zip" << std::endl;
+	}
+
+	if (MyZip.IsFileInChildZip(String("D:\\Good.zip"),
+		String("Win10激活工具.zip"),
+		String("Windows Loader.exe"),
+		true,
+		String("tang1028")))
+	{
+		std::cout << "File is existed in zip2" << std::endl;
+	}
+
+	/*LibCurl::InitCurl();
 
 	LibCurl CurObject;
 
-	bool bDownloadOk = CurObject.FtpDownload("ftp://127.0.0.1/test/qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
-		"D:\\qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
+	bool bDownloadOk = CurObject.FtpDownload("ftp://127.0.0.1/test/林俊杰.-.[因你而在](2013)[WAV].wav", 
+		"D:\\Jon.wav", 
 		"abc", 
 		"tang1028",
 		"21",
@@ -56,8 +170,8 @@ int main()
 		return -1;
 	}
 
-	bool bUploadOk = CurObject.FtpUpload("ftp://127.0.0.1/test/qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
-		"D:\\computer\\qqpcmgr_v13.5.20525.234_1100110576_0.exe", 
+	bool bUploadOk = CurObject.FtpUpload("ftp://127.0.0.1/test/林俊杰.-.[因你而在](2013)[WAV].wav", 
+		"D:\\林俊杰.-.[因你而在](2013)[WAV].wav", 
 		"abc", 
 		"tang1028",
 		"21",
@@ -78,8 +192,8 @@ int main()
 
 	std::cout << "Finish one" << std::endl;
 
-	bool bUploadOk1 = CurObject.FtpUpload("ftp://127.0.0.1/test/12.exe",
-		"D:\\computer\\12.exe",
+	bool bUploadOk1 = CurObject.FtpUpload("ftp://127.0.0.1/test/软件参数对照表.xlsx",
+		"D:\\软件参数对照表.xlsx",
 		"abc",
 		"tang1028",
 		"21",
@@ -96,7 +210,7 @@ int main()
 		std::cout << strErrorMsg << std::endl;
 
 		return -1;
-	}
+	}*/
 
 	/*String strVersion = CurObject.GetCurVersion();
 
@@ -131,7 +245,7 @@ int main()
 		}
 	}*/
 
-	LibCurl::DestoryCurl();
+	//LibCurl::DestoryCurl();
 
 
 	/*SqliteDB db;
@@ -182,7 +296,7 @@ int main()
 	db.Close();*/
 
 
-	Excel ExcelHelper;
+	/*Excel ExcelHelper;
 
 	ExcelHelper.Load(String(_T("D:\\软件参数对照表.xlsx")));
 
@@ -214,7 +328,7 @@ int main()
 
 	_bstr_t strValue3 = Value.bstrVal;
 
-	String strFinalValue3 = std::string(strValue3);
+	String strFinalValue3 = std::string(strValue3);*/
 
 	/*Excel MyExcel;
 

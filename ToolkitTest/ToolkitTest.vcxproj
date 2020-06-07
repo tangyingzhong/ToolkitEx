@@ -23,7 +23,7 @@
     <ProjectGuid>{5EF265AC-3604-492E-9AD2-B7271B1CFD1F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ToolkitTest</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -89,15 +89,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;ZLIB_WINAPI;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)..\ShareLib\Toolkit\include;$(SolutionDir)..\ShareLib\ToolkitEx\include;$(SolutionDir)..\ShareLib\LibXls\include;$(SolutionDir)..\ShareLib\LibDocx\include;$(SolutionDir)..\ShareLib\Sqlite\include;$(SolutionDir)..\ShareLib\LibCurl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)..\ShareLib\Toolkit\include;$(SolutionDir)..\ShareLib\ToolkitEx\include;$(SolutionDir)..\ShareLib\LibXls\include;$(SolutionDir)..\ShareLib\LibDocx\include;$(SolutionDir)..\ShareLib\Sqlite\include;$(SolutionDir)..\ShareLib\LibCurl\include;$(SolutionDir)..\ShareLib\Zlib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\ShareLib\Toolkit\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\ToolkitEx\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibXls\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibDocx\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\Sqlite\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibCurl\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Toolkit.lib;libxl.lib;DocxFactory.lib;sqlite3.lib;curllib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\ShareLib\Toolkit\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\ToolkitEx\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibXls\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibDocx\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\Sqlite\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibCurl\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\Zlib\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Toolkit.lib;libxl.lib;DocxFactory.lib;sqlite3.lib;curllib.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -107,7 +107,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;ZLIB_WINAPI;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)..\ShareLib\Toolkit\include;$(SolutionDir)..\ShareLib\ToolkitEx\include;$(SolutionDir)..\ShareLib\LibXls\include;$(SolutionDir)..\ShareLib\LibDocx\include;$(SolutionDir)..\ShareLib\Sqlite\include;$(SolutionDir)..\ShareLib\LibCurl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -127,17 +127,17 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;ZLIB_WINAPI;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)..\ShareLib\Toolkit\include;$(SolutionDir)..\ShareLib\ToolkitEx\include;$(SolutionDir)..\ShareLib\LibXls\include;$(SolutionDir)..\ShareLib\LibDocx\include;$(SolutionDir)..\ShareLib\Sqlite\include;$(SolutionDir)..\ShareLib\LibCurl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)..\ShareLib\Toolkit\include;$(SolutionDir)..\ShareLib\ToolkitEx\include;$(SolutionDir)..\ShareLib\LibXls\include;$(SolutionDir)..\ShareLib\LibDocx\include;$(SolutionDir)..\ShareLib\Sqlite\include;$(SolutionDir)..\ShareLib\LibCurl\include;$(SolutionDir)..\ShareLib\Zlib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\ShareLib\Toolkit\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\ToolkitEx\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibXls\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibDocx\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\Sqlite\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibCurl\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Toolkit.lib;libxl.lib;DocxFactory.lib;sqlite3.lib;curllib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\ShareLib\Toolkit\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\ToolkitEx\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibXls\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibDocx\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\Sqlite\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\LibCurl\lib\$(Platform)\$(Configuration);$(SolutionDir)..\ShareLib\Zlib\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Toolkit.lib;libxl.lib;DocxFactory.lib;sqlite3.lib;curllib.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -149,7 +149,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;ZLIB_WINAPI;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)..\ShareLib\Toolkit\include;$(SolutionDir)..\ShareLib\ToolkitEx\include;$(SolutionDir)..\ShareLib\LibXls\include;$(SolutionDir)..\ShareLib\LibDocx\include;$(SolutionDir)..\ShareLib\Sqlite\include;$(SolutionDir)..\ShareLib\LibCurl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -165,6 +165,9 @@
   <ItemGroup>
     <ClCompile Include="ToolkitTest.cpp" />
     <ClCompile Include="Toolkit\LibCurl\LibCurl.cpp" />
+    <ClCompile Include="Toolkit\MiniZip\MiniZip.cpp" />
+    <ClCompile Include="Toolkit\MiniZip\unzip.cpp" />
+    <ClCompile Include="Toolkit\MiniZip\zip.cpp" />
     <ClCompile Include="Toolkit\Office\Excel\Excel.cpp" />
     <ClCompile Include="Toolkit\Office\Word\Word.cpp" />
     <ClCompile Include="Toolkit\Office\Word\WordProcessingCompiler.cpp" />
@@ -174,6 +177,9 @@
   <ItemGroup>
     <ClInclude Include="Toolkit\LibCurl\ILibCurl.h" />
     <ClInclude Include="Toolkit\LibCurl\LibCurl.h" />
+    <ClInclude Include="Toolkit\MiniZip\MiniZip.h" />
+    <ClInclude Include="Toolkit\MiniZip\unzip.h" />
+    <ClInclude Include="Toolkit\MiniZip\zip.h" />
     <ClInclude Include="Toolkit\Office\Excel\Excel.h" />
     <ClInclude Include="Toolkit\Office\Excel\IExcel.h" />
     <ClInclude Include="Toolkit\Office\Word\IWord.h" />

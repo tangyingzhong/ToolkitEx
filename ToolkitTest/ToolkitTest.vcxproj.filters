@@ -23,6 +23,9 @@
     <Filter Include="Toolkit\Sqlite">
       <UniqueIdentifier>{f4ef45e9-1946-4ab3-ac05-ac1613dcfa9f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Toolkit\MiniZip">
+      <UniqueIdentifier>{abca4ff2-9591-425e-ba64-b9ba878cacf1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ToolkitTest.cpp">
@@ -45,6 +48,15 @@
     </ClCompile>
     <ClCompile Include="Toolkit\LibCurl\LibCurl.cpp">
       <Filter>Toolkit\LibCurl</Filter>
+    </ClCompile>
+    <ClCompile Include="Toolkit\MiniZip\MiniZip.cpp">
+      <Filter>Toolkit\MiniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Toolkit\MiniZip\unzip.cpp">
+      <Filter>Toolkit\MiniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Toolkit\MiniZip\zip.cpp">
+      <Filter>Toolkit\MiniZip</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +86,15 @@
     </ClInclude>
     <ClInclude Include="Toolkit\LibCurl\LibCurl.h">
       <Filter>Toolkit\LibCurl</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\MiniZip\MiniZip.h">
+      <Filter>Toolkit\MiniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\MiniZip\unzip.h">
+      <Filter>Toolkit\MiniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Toolkit\MiniZip\zip.h">
+      <Filter>Toolkit\MiniZip</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
